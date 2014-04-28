@@ -24,6 +24,10 @@ It can be arbitrarily nested.
 This updates `config/secrets.ejson` in place, encrypting any newly-added or
 modified values that are not yet encrypted. `ejson` is short-hand for `ejson encrypt`.
 
+By default, it uses a public key that you won't be able to decrypt. You can use
+your own by following the "Custom keypair" directions below. Feel free to fork
+the gem to reference your own keypair by default.
+
 #### 3) Decrypt the file:
 
      ejson decrypt -k ~/.keys/ejson.priv.pem -p config/ejson.pub.pem secrets.production.ejson > secrets.production.json
