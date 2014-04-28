@@ -44,16 +44,15 @@ created in step 1.
 We use a single keypair internally; the default public key is fetched from S3
 on each run. However, you can generate your own keypair like so:
 
-    mkdir config && cd config
     openssl req -x509 -nodes -days 100000 -newkey rsa:2048 -keyout privatekey.pem -out publickey.pem -subj '/'
 
 `publickey.pem` and `privatekey.pem` are created. Move `privatekey.pem`
-somewhere more secure.
-
-    mkdir -p ~/.keys
-    mv config/privatekey.pem ~/.keys/ejson.pem
+somewhere more private, and move `publickey.pem` somewhere more public.
 
 Then you can encrypt like:
 
-    ejson encrypt -p config/publickey.pem secrets.ejson
+    ejson encrypt -p publickey.pem secrets.ejson
+
+If you'd like to fork the gem to reference your own public key, that
+information lives around line 10 of `lib/ejson/cli.rb`.
 
