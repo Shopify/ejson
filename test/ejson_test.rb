@@ -39,12 +39,23 @@ class CLITest < Minitest::Unit::TestCase
     f.puts JSON.dump({a: "b"})
     f.close
 
-    runcli "encrypt", f.path # no pubkey specified
+    File.stub(:exists?, false) do
+      assert_raises(EJSON::Encryption::PublicKeyMissing) {
+        runcli "encrypt", f.path # no pubkey specified
+      }
+    end
+  ensure
+    File.unlink(f.path)
+  end
 
-    first_run = JSON.load(File.read(f.path))
-    # We don't have the decryption key to this, and it may change over time,
-    # so just make sure it was encrypted.
-    assert_match(/\AENC\[MIIB.*\]\z/, first_run["a"])
+  def test_default_key_not_exists
+    f = Tempfile.create("encrypt")
+    f.puts JSON.dump({a: "b"})
+    f.close
+
+    assert_raises(EJSON::Encryption::PublicKeyMissing) {
+      runcli "encrypt", "-p", File.join('', 'tmp', 'something','doesnt_exist2353'), f.path
+    }
   ensure
     File.unlink(f.path)
   end
@@ -55,6 +66,18 @@ class CLITest < Minitest::Unit::TestCase
     f.close
     assert_raises(EJSON::Encryption::ExpectedEncryptedString) {
       decrypt(f.path)
+    }
+  ensure
+    File.unlink(f.path)
+  end
+
+  def test_library_expects_private_key
+    f = Tempfile.create("decrypt")
+    f.puts JSON.dump({a: "b"})
+    f.close
+    encrypt f.path
+    assert_raises(EJSON::Encryption::PrivateKeyMissing) {
+      runcli "decrypt", "-p", pubkey, f.path
     }
   ensure
     File.unlink(f.path)

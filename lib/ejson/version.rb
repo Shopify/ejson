@@ -1,3 +1,3 @@
-class Ejson
-  VERSION = "0.2.2"
+class EJSON
+  VERSION = "0.2.3"
 end

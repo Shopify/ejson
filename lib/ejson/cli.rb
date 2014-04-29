@@ -1,20 +1,23 @@
 require 'thor'
 require 'json'
 require 'ejson'
+require 'ejson/version'
 require 'net/http'
 
 class EJSON
 
   class CLI < Thor
     class_option "privkey", type: :string, aliases: "-k", desc: "Path to PKCS7 private key in PEM format"
-    class_option "pubkey",  type: :string, aliases: "-p", desc: "Path or URL to PKCS7 public key in PEM format",  default: "https://s3.amazonaws.com/shopify-ops/ejson-publickey.pem"
+    class_option "pubkey",  type: :string, aliases: "-p", desc: "Path or URL to PKCS7 public key in PEM format",  default: File.join(Dir.home, '.ejson', 'publickey.pem')
 
     default_task :encrypt
 
     desc "decrypt [file]", "decrypt some data from file to stdout"
     def decrypt(file)
       ciphertext = File.read(file)
-      ej = EJSON.new(pubkey, options[:privkey])
+      pubkey_data = File.read(pubkey) if File.exists?(pubkey)
+      privkey_data = File.read(options[:privkey]) if options[:privkey]
+      ej = EJSON.new(pubkey_data, privkey_data)
       puts JSON.pretty_generate(ej.load(ciphertext).decrypt_all)
     rescue EJSON::Encryption::PrivateKeyMissing => e
       fatal("can't decrypt data without private key (specify path with -k)", e)
@@ -24,7 +27,8 @@ class EJSON
 
     desc "encrypt [file=**/*.ejson]", "encrypt an ejson file in place (encrypt any unencrypted values)"
     def encrypt(file="**/*.ejson")
-      ej = EJSON.new(pubkey)
+      pubkey_data = File.read(pubkey) if File.exists?(pubkey)
+      ej = EJSON.new(pubkey_data)
       fpaths = Dir.glob(file)
       if fpaths.empty?
         fatal("no ejson files found!", nil)
