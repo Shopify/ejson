@@ -7,16 +7,16 @@ require 'net/http'
 class EJSON
 
   class CLI < Thor
-    class_option "privkey", type: :string, aliases: "-k", desc: "Path to PKCS7 private key in PEM format"
-    class_option "pubkey",  type: :string, aliases: "-p", desc: "Path or URL to PKCS7 public key in PEM format",  default: File.join(Dir.home, '.ejson', 'publickey.pem')
+    class_option "privkey", type: :string, aliases: "-k", desc: "Path to PKCS7 private key in PEM format", default: File.join(Dir.home, '.ejson', 'privatekey.pem')
+    class_option "pubkey",  type: :string, aliases: "-p", desc: "Path or URL to PKCS7 public key in PEM format", default: File.join(Dir.home, '.ejson', 'publickey.pem')
 
     default_task :encrypt
 
     desc "decrypt [file]", "decrypt some data from file to stdout"
     def decrypt(file)
       ciphertext = File.read(file)
-      pubkey_data = File.read(pubkey) if File.exists?(pubkey)
-      privkey_data = File.read(options[:privkey]) if options[:privkey]
+      pubkey_data = File.read(options[:pubkey]) if File.exists?(options[:pubkey])
+      privkey_data = File.read(options[:privkey]) if File.exists?(options[:privkey])
       ej = EJSON.new(pubkey_data, privkey_data)
       puts JSON.pretty_generate(ej.load(ciphertext).decrypt_all)
     rescue EJSON::Encryption::PrivateKeyMissing => e
@@ -27,7 +27,7 @@ class EJSON
 
     desc "encrypt [file=**/*.ejson]", "encrypt an ejson file in place (encrypt any unencrypted values)"
     def encrypt(file="**/*.ejson")
-      pubkey_data = File.read(pubkey) if File.exists?(pubkey)
+      pubkey_data = File.read(options[:pubkey]) if File.exists?(options[:pubkey])
       ej = EJSON.new(pubkey_data)
       fpaths = Dir.glob(file)
       if fpaths.empty?

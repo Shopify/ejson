@@ -1,5 +1,6 @@
 require 'minitest/autorun'
 require 'tempfile'
+require "mocha/mini_test"
 
 require 'ejson/cli'
 
@@ -33,28 +34,57 @@ class CLITest < Minitest::Unit::TestCase
     File.unlink(f.path)
   end
 
-  def test_default_key_exists
-    f = Tempfile.create("encrypt")
-
+  def test_default_keys
+    f = Tempfile.create("decrypt")
     f.puts JSON.dump({a: "b"})
     f.close
 
-    File.stub(:exists?, false) do
-      assert_raises(EJSON::Encryption::PublicKeyMissing) {
-        runcli "encrypt", f.path # no pubkey specified
-      }
-    end
+    File.expects(:exists?).with(File.join(Dir.home, '.ejson', 'publickey.pem')).returns(true)
+    File.expects(:read).with(f.path).returns(IO.read(f.path))
+    File.expects(:read).with(File.join(Dir.home, '.ejson', 'publickey.pem')).returns(IO.read(pubkey))
+
+    runcli "encrypt", f.path
+    first_run = JSON.load(IO.read(f.path))
+    assert_match(/\AENC\[MIIB.*\]\z/, first_run["a"])
+
+    File.expects(:exists?).with(File.join(Dir.home, '.ejson', 'publickey.pem')).returns(true)
+    File.expects(:exists?).with(File.join(Dir.home, '.ejson', 'privatekey.pem')).returns(true)
+    File.expects(:read).with(f.path).returns(IO.read(f.path))
+    File.expects(:read).with(File.join(Dir.home, '.ejson', 'publickey.pem')).returns(IO.read(pubkey))
+    File.expects(:read).with(File.join(Dir.home, '.ejson', 'privatekey.pem')).returns(IO.read(privkey))
+
+    second_run = JSON.parse(runcli "decrypt", f.path)
+    assert_equal({"a" => "b"}, second_run)
   ensure
     File.unlink(f.path)
   end
 
-  def test_default_key_not_exists
+  def test_default_pubkey_exists
     f = Tempfile.create("encrypt")
+
     f.puts JSON.dump({a: "b"})
     f.close
 
+    File.expects(:exists?).with(File.join(Dir.home, '.ejson', 'publickey.pem')).returns(false)
+
     assert_raises(EJSON::Encryption::PublicKeyMissing) {
-      runcli "encrypt", "-p", File.join('', 'tmp', 'something','doesnt_exist2353'), f.path
+      runcli "encrypt", f.path # no pubkey specified
+    }
+  ensure
+    File.unlink(f.path)
+  end
+
+  def test_default_privkey_exists
+    f = Tempfile.create("decrypt")
+    f.puts JSON.dump({a: "b"})
+    f.close
+    encrypt f.path
+
+    File.expects(:exists?).with(pubkey).returns(true)
+    File.expects(:exists?).with(File.join(Dir.home, '.ejson', 'privatekey.pem')).returns(false)
+
+    assert_raises(EJSON::Encryption::PrivateKeyMissing) {
+      runcli "decrypt", "-p", pubkey, f.path # no privkey specified
     }
   ensure
     File.unlink(f.path)
@@ -66,18 +96,6 @@ class CLITest < Minitest::Unit::TestCase
     f.close
     assert_raises(EJSON::Encryption::ExpectedEncryptedString) {
       decrypt(f.path)
-    }
-  ensure
-    File.unlink(f.path)
-  end
-
-  def test_library_expects_private_key
-    f = Tempfile.create("decrypt")
-    f.puts JSON.dump({a: "b"})
-    f.close
-    encrypt f.path
-    assert_raises(EJSON::Encryption::PrivateKeyMissing) {
-      runcli "decrypt", "-p", pubkey, f.path
     }
   ensure
     File.unlink(f.path)
