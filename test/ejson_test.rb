@@ -8,13 +8,14 @@ class CLITest < Minitest::Unit::TestCase
   def test_ejson
     f = Tempfile.create("encrypt")
 
-    f.puts JSON.dump({a: "b"})
+    f.puts JSON.dump({a: "b", _comment: "d"})
     f.close
 
     encrypt f.path
 
     first_run = JSON.load(File.read(f.path))
     assert_match(/\AENC\[MIIB.*\]\z/, first_run["a"])
+    assert_equal "d", first_run["_comment"]
 
     File.open(f.path, "w") { |f2|
       f2.puts JSON.dump(first_run.merge({new_key: "new_value"}))
@@ -28,7 +29,7 @@ class CLITest < Minitest::Unit::TestCase
     assert_match(/\AENC\[MIIB.*\]\z/, second_run["new_key"])
 
     val = JSON.parse(decrypt(f.path))
-    assert_equal({"a" => "b", "new_key" => "new_value"}, val)
+    assert_equal({"a" => "b", "new_key" => "new_value", "_comment" => "d"}, val)
   ensure
     File.unlink(f.path)
   end

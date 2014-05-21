@@ -27,30 +27,46 @@ class EJSON
       JSON.pretty_generate(encrypt_all(@data))
     end
 
-    def encrypt_all(data=@data)
+    def encrypt_all(name=nil, data=@data)
       case data
       when Hash
-        Hash[ data.map { |k,v| [k, encrypt_all(v)] } ]
+        Hash[ data.map { |k,v| [k, encrypt_all(k, v)] } ]
       when Array
-        data.map { |d| encrypt_all(d) }
+        data.map { |d| encrypt_all(name, d) }
       when String
-        encryption.dump(data)
+        encrypt_string(name, data)
       else
         data
       end
     end
 
-    def decrypt_all(data=@data)
+    def decrypt_all(name=nil, data=@data)
       case data
       when Hash
-        Hash[ data.map { |k,v| [k, decrypt_all(v)] } ]
+        Hash[ data.map { |k,v| [k, decrypt_all(k, v)] } ]
       when Array
-        data.map { |d| decrypt_all(d) }
+        data.map { |d| decrypt_all(nil, d) }
       when String
-        encryption.load(data)
+        decrypt_string(name, data)
       else
         data
       end
+    end
+
+    private
+
+    def encrypt_string(name, data)
+      return data if is_comment?(name)
+      encryption.dump(data)
+    end
+
+    def decrypt_string(name, data)
+      return data if is_comment?(name)
+      encryption.load(data)
+    end
+
+    def is_comment?(name)
+      name === String && name =~ /^_/
     end
 
   end
