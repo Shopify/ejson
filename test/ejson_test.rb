@@ -6,7 +6,7 @@ require 'ejson/cli'
 class CLITest < Minitest::Unit::TestCase
 
   def test_ejson
-    f = Tempfile.create("encrypt")
+    f = Tempfile.new("encrypt")
 
     f.puts JSON.dump({a: "b"})
     f.close
@@ -34,7 +34,7 @@ class CLITest < Minitest::Unit::TestCase
   end
 
   def test_default_key_exists
-    f = Tempfile.create("encrypt")
+    f = Tempfile.new("encrypt")
 
     f.puts JSON.dump({a: "b"})
     f.close
@@ -50,7 +50,7 @@ class CLITest < Minitest::Unit::TestCase
   end
 
   def test_library_is_picky
-    f = Tempfile.create("decrypt")
+    f = Tempfile.new("decrypt")
     f.puts JSON.dump({a: "b"})
     f.close
     assert_raises(EJSON::Encryption::ExpectedEncryptedString) {
