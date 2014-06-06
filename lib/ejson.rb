@@ -6,8 +6,8 @@ class EJSON
   extend Forwardable
   def_delegators :@encryption, :load_string, :dump_string
 
-  def initialize(public_key_file, private_key_file = nil)
-    @encryption = Encryption.new(public_key_file, private_key_file)
+  def initialize(public_key, private_key = nil)
+    @encryption = Encryption.new(public_key, private_key)
   end
 
   def load(json_text)
