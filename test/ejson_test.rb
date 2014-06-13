@@ -60,6 +60,16 @@ class CLITest < Minitest::Unit::TestCase
     File.unlink(f.path)
   end
 
+  def test_key_strings
+    public_key = File.read(pubkey)
+    private_key = File.read(privkey)
+
+    @enc = EJSON::Encryption.new(public_key, private_key)
+
+    assert_equal public_key, @enc.instance_variable_get(:@public_key_x509).to_s
+    assert_equal private_key, @enc.instance_variable_get(:@private_key_rsa).to_s
+  end
+
   private
 
   def encrypt(path)

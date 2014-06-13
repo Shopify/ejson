@@ -7,10 +7,10 @@ class EJSON
     PrivateKeyMissing = Class.new(StandardError)
     ExpectedEncryptedString = Class.new(StandardError)
 
-    def initialize(public_key_file, private_key_file)
-      @public_key_x509 = load_public_key(public_key_file)
-      if private_key_file
-        @private_key_rsa = load_private_key(private_key_file)
+    def initialize(public_key, private_key)
+      @public_key_x509 = load_public_key(public_key)
+      if private_key
+        @private_key_rsa = load_private_key(private_key)
       end
     end
 
@@ -47,15 +47,16 @@ class EJSON
       pkcs7.decrypt(@private_key_rsa, @public_key_x509)
     end
 
-    def load_public_key(public_key_file)
-      public_key_pem = File.read(public_key_file)
-      OpenSSL::X509::Certificate.new(public_key_pem)
+    def load_public_key(public_key)
+      OpenSSL::X509::Certificate.new(get_pem(public_key))
     end
 
-    def load_private_key(private_key_file)
-      private_key_pem = File.read(private_key_file)
-      OpenSSL::PKey::RSA.new(private_key_pem)
+    def load_private_key(private_key)
+      OpenSSL::PKey::RSA.new(get_pem(private_key))
     end
 
+    def get_pem(string)
+      string =~ /^-----BEGIN/ ? string : File.read(string)
+    end
   end
 end
