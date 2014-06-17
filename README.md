@@ -17,6 +17,15 @@ It's on rubygems. Just `gem install ejson` or add it to your `Gemfile`.
 Keys in this file will remain in cleartext, while values will all be encrypted.
 It can be arbitrarily nested.
 
+Any values having keys beginning with underscores will be left unencrypted. e.g.:
+
+```json
+{
+  "some_secret": "ENC[MII.....]",
+  "_a_comment": "you can change this at http://foo.bar"
+}
+```
+
 #### 2) Encrypt the file:
 
     ejson
