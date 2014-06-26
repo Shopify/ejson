@@ -41,6 +41,7 @@ class EJSON
 
     desc "version", "show version information"
     def version
+      require 'ejson/version'
       puts "ejson version #{EJSON::VERSION}"
     end
 

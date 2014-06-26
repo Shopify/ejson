@@ -5,7 +5,7 @@ require 'ejson/version'
 
 Gem::Specification.new do |spec|
   spec.name          = "ejson"
-  spec.version       = Ejson::VERSION
+  spec.version       = EJSON::VERSION
   spec.authors       = ["Burke Libbey"]
   spec.email         = ["burke.libbey@shopify.com"]
   spec.summary       = %q{Asymmetric keywise encryption for JSON}
