@@ -12,10 +12,17 @@ class EJSON
     default_task :encrypt
 
     desc "decrypt [file]", "decrypt some data from file to stdout"
+    method_option :inplace, type: :boolean, default: false, aliases: "-i", desc: "Overwrite input file rather than dumping to stdout"
     def decrypt(file)
       ciphertext = File.read(file)
       ej = EJSON.new(pubkey, options[:privkey])
-      puts JSON.pretty_generate(ej.load(ciphertext).decrypt_all)
+      output = JSON.pretty_generate(ej.load(ciphertext).decrypt_all)
+      if options[:inplace]
+        File.open(file, "w") { |f| f.puts output }
+        puts "Wrote #{output.size} bytes to #{file}"
+      else
+        puts output
+      end
     rescue EJSON::Encryption::PrivateKeyMissing => e
       fatal("can't decrypt data without private key (specify path with -k)", e)
     rescue EJSON::Encryption::ExpectedEncryptedString => e

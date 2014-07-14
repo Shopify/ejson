@@ -33,6 +33,23 @@ class CLITest < Minitest::Unit::TestCase
     File.unlink(f.path)
   end
 
+  def test_inplace
+    f = Tempfile.new("encrypt")
+
+    f.puts JSON.dump({a: "b"})
+    f.close
+
+    runcli "encrypt", "-p", pubkey, f.path
+    encrypted = JSON.load(File.read(f.path))
+    assert_match(/\AENC\[MIIB.*\]\z/, encrypted["a"])
+
+    runcli "decrypt", "-i", "-p", pubkey, "-k", privkey, f.path
+    decrypted = JSON.load(File.read(f.path))
+    refute_match(/\AENC\[MIIB.*\]\z/, decrypted["a"])
+  ensure
+    File.unlink(f.path)
+  end
+
   def test_default_key_exists
     f = Tempfile.new("encrypt")
 

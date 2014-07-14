@@ -32,10 +32,13 @@ your own keypair by default.
 #### 3) Decrypt the file:
 
      ejson decrypt -k ~/.keys/ejson.priv.pem -p config/ejson.pub.pem secrets.production.ejson > secrets.production.json
+     # OR
+     ejson decrypt -i -k ~/.keys/ejson.priv.pem -p config/ejson.pub.pem secrets.production.ejson
 
 Unlike encrypt, decrypt doesn't update the file in-place; it prints the
 decrypted contents to stdout. It also requires access to the private key
-created in step 1.
+created in step 1. By default, the secrets will be decrypted to stdout,
+but passing the `-i` flag causes them to be overwritten to the input file.
 
 #### See `ejson help` for more information.
 
