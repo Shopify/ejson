@@ -87,6 +87,18 @@ class CLITest < Minitest::Unit::TestCase
     assert_equal private_key, @enc.instance_variable_get(:@private_key_rsa).to_s
   end
 
+  def test_serializer_api
+    serializer = EJSON.new(pubkey, privkey).serializer
+    data = {'foo' => 'bar'}
+
+    assert_equal data, serializer.load(serializer.dump(data))
+  end
+
+  def test_serializer_safety
+    serializer = EJSON.new(pubkey, privkey).serializer
+    refute serializer.dump('foo' => 'bar').include?('bar')
+  end
+
   private
 
   def encrypt(path)

@@ -14,6 +14,27 @@ class EJSON
     Data.new(JSON.load(json_text), @encryption)
   end
 
+  def serializer
+    @serializer ||= Serializer.new(@encryption)
+  end
+
+  class Serializer
+
+    def initialize(encryption)
+      @encryption = encryption
+    end
+
+    def dump(data)
+      data = Data.new(data, @encryption) unless data.is_a?(Data)
+      data.dump
+    end
+
+    def load(data)
+      Data.new(JSON.parse(data), @encryption).decrypt_all
+    end
+
+  end
+
   class Data
     extend Forwardable
     def_delegators :@data, :[]=
