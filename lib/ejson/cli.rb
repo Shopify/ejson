@@ -12,14 +12,14 @@ class EJSON
     default_task :encrypt
 
     desc "decrypt [file]", "decrypt some data from file to stdout"
-    method_option :inplace, type: :boolean, default: false, aliases: "-i", desc: "Overwrite input file rather than dumping to stdout"
+    method_option :out, type: :string, default: false, aliases: "-o", desc: "Write to a file rather than stdout"
     def decrypt(file)
       ciphertext = File.read(file)
       ej = EJSON.new(pubkey, options[:privkey])
       output = JSON.pretty_generate(ej.load(ciphertext).decrypt_all)
-      if options[:inplace]
-        File.open(file, "w") { |f| f.puts output }
-        puts "Wrote #{output.size} bytes to #{file}"
+      if options[:out]
+        File.open(options[:out], "w") { |f| f.puts output }
+        puts "Wrote #{output.size} bytes to #{options[:out]}"
       else
         puts output
       end

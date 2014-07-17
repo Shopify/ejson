@@ -43,7 +43,7 @@ class CLITest < Minitest::Unit::TestCase
     encrypted = JSON.load(File.read(f.path))
     assert_match(/\AENC\[MIIB.*\]\z/, encrypted["a"])
 
-    runcli "decrypt", "-i", "-p", pubkey, "-k", privkey, f.path
+    runcli "decrypt", "-o", f.path, "-p", pubkey, "-k", privkey, f.path
     decrypted = JSON.load(File.read(f.path))
     refute_match(/\AENC\[MIIB.*\]\z/, decrypted["a"])
   ensure
