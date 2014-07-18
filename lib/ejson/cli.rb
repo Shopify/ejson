@@ -6,8 +6,8 @@ require 'net/http'
 class EJSON
 
   class CLI < Thor
-    class_option "privkey", type: :string, aliases: "-k", desc: "Path to PKCS7 private key in PEM format"
-    class_option "pubkey",  type: :string, aliases: "-p", desc: "Path or URL to PKCS7 public key in PEM format",  default: "https://s3.amazonaws.com/shopify-ops/ejson-publickey.pem"
+    class_option "privkey", type: :string, aliases: "-k", desc: "Path to PKCS7 private key in PEM format", default: ENV['EJSON_PRIVATE_KEY_PATH']
+    class_option "pubkey",  type: :string, aliases: "-p", desc: "Path or URL to PKCS7 public key in PEM format",  default: (ENV['EJSON_PUBLIC_KEY_PATH'] || "https://s3.amazonaws.com/shopify-ops/ejson-publickey.pem")
 
     default_task :encrypt
 
