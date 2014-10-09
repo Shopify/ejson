@@ -47,7 +47,7 @@ but passing the `-i` flag causes them to be overwritten to the input file.
 We use a single keypair internally; the default public key is fetched from S3
 on each run. However, you can generate your own keypair like so:
 
-    openssl req -x509 -nodes -days 100000 -newkey rsa:2048 -keyout privatekey.pem -out publickey.pem -subj '/'
+    openssl req -x509 -nodes -days 100000 -newkey rsa:2048 -keyout privatekey.pem -out publickey.pem -subj '/O=Your Organization'
 
 `publickey.pem` and `privatekey.pem` are created. Move `privatekey.pem`
 somewhere more private, and move `publickey.pem` somewhere more public.
