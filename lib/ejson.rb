@@ -51,11 +51,14 @@ class EJSON
     def encrypt_all(data=@data)
       case data
       when Hash
-        Hash[ data.map { |k,v| [k, encrypt_all(v)] } ]
+        if data["secret"]
+          data["secret"] = encryption.dump(data["secret"])
+          data
+        else
+          Hash[ data.map { |k,v| [k, encrypt_all(v)] } ]
+        end
       when Array
         data.map { |d| encrypt_all(d) }
-      when String
-        encryption.dump(data)
       else
         data
       end
@@ -64,11 +67,14 @@ class EJSON
     def decrypt_all(data=@data)
       case data
       when Hash
-        Hash[ data.map { |k,v| [k, decrypt_all(v)] } ]
+        if data["secret"]
+          data["secret"] = encryption.load(data["secret"])
+          data
+        else
+          Hash[ data.map { |k,v| [k, decrypt_all(v)] } ]
+        end
       when Array
         data.map { |d| decrypt_all(d) }
-      when String
-        encryption.load(data)
       else
         data
       end

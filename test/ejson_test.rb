@@ -8,44 +8,46 @@ class CLITest < Minitest::Unit::TestCase
   def test_ejson
     f = Tempfile.new("encrypt")
 
-    f.puts JSON.dump({a: "b"})
-    f.close
 
-    encrypt f.path
-
-    first_run = JSON.load(File.read(f.path))
-    assert_match(/\AENC\[MIIB.*\]\z/, first_run["a"])
-
-    File.open(f.path, "w") { |f2|
-      f2.puts JSON.dump(first_run.merge({new_key: "new_value"}))
-    }
-
-    encrypt f.path
-
-    second_run = JSON.load(File.read(f.path))
-
-    assert_equal first_run["a"], second_run["a"]
-    assert_match(/\AENC\[MIIB.*\]\z/, second_run["new_key"])
-
-    val = JSON.parse(decrypt(f.path))
-    assert_equal({"a" => "b", "new_key" => "new_value"}, val)
-  ensure
-    File.unlink(f.path)
-  end
-
-  def test_inplace
-    f = Tempfile.new("encrypt")
-
-    f.puts JSON.dump({a: "b"})
+    f.puts JSON.dump(secret_schema)
     f.close
 
     runcli "encrypt", "-p", pubkey, f.path
     encrypted = JSON.load(File.read(f.path))
-    assert_match(/\AENC\[MIIB.*\]\z/, encrypted["a"])
+
+    assert_equal secret_schema["a"]["severity"], encrypted["a"]["severity"]
+    assert_equal secret_schema["a"]["description"], encrypted["a"]["description"]
+    assert_equal secret_schema["a"]["type"], encrypted["a"]["type"]
+    assert_equal secret_schema["a"]["rotation"], encrypted["a"]["rotation"]
+    assert_equal secret_schema["a"]["urls"], encrypted["a"]["urls"]
+    assert_match(/\AENC\[MIIB.*\]\z/, encrypted["a"]["secret"])
 
     runcli "decrypt", "-o", f.path, "-p", pubkey, "-k", privkey, f.path
     decrypted = JSON.load(File.read(f.path))
-    refute_match(/\AENC\[MIIB.*\]\z/, decrypted["a"])
+    assert_equal secret_schema["a"]["severity"], decrypted["a"]["severity"]
+    assert_equal secret_schema["a"]["description"], decrypted["a"]["description"]
+    assert_equal secret_schema["a"]["type"], decrypted["a"]["type"]
+    assert_equal secret_schema["a"]["rotation"], decrypted["a"]["rotation"]
+    assert_equal secret_schema["a"]["urls"], decrypted["a"]["urls"]
+    assert_equal secret_schema["a"]["secret"], decrypted["a"]["secret"]
+  ensure
+    File.unlink(f.path)
+  end
+
+
+  def test_inplace
+    f = Tempfile.new("encrypt")
+
+    f.puts JSON.dump(secret_schema)
+    f.close
+
+    runcli "encrypt", "-p", pubkey, f.path
+    encrypted = JSON.load(File.read(f.path))
+    assert_match(/\AENC\[MIIB.*\]\z/, encrypted["a"]["secret"])
+
+    runcli "decrypt", "-o", f.path, "-p", pubkey, "-k", privkey, f.path
+    decrypted = JSON.load(File.read(f.path))
+    refute_match(/\AENC\[MIIB.*\]\z/, decrypted["a"]["secret"])
   ensure
     File.unlink(f.path)
   end
@@ -53,7 +55,7 @@ class CLITest < Minitest::Unit::TestCase
   def test_default_key_exists
     f = Tempfile.new("encrypt")
 
-    f.puts JSON.dump({a: "b"})
+    f.puts JSON.dump(secret_schema)
     f.close
 
     runcli "encrypt", f.path # no pubkey specified
@@ -61,14 +63,14 @@ class CLITest < Minitest::Unit::TestCase
     first_run = JSON.load(File.read(f.path))
     # We don't have the decryption key to this, and it may change over time,
     # so just make sure it was encrypted.
-    assert_match(/\AENC\[MIIB.*\]\z/, first_run["a"])
+    assert_match(/\AENC\[MIIB.*\]\z/, first_run["a"]["secret"])
   ensure
     File.unlink(f.path)
   end
 
   def test_library_is_picky
     f = Tempfile.new("decrypt")
-    f.puts JSON.dump({a: "b"})
+    f.puts JSON.dump(secret_schema)
     f.close
     assert_raises(EJSON::Encryption::ExpectedEncryptedString) {
       decrypt(f.path)
@@ -89,14 +91,12 @@ class CLITest < Minitest::Unit::TestCase
 
   def test_serializer_api
     serializer = EJSON.new(pubkey, privkey).serializer
-    data = {'foo' => 'bar'}
-
-    assert_equal data, serializer.load(serializer.dump(data))
+    assert_equal secret_schema, serializer.load(serializer.dump(secret_schema))
   end
 
   def test_serializer_safety
     serializer = EJSON.new(pubkey, privkey).serializer
-    refute serializer.dump('foo' => 'bar').include?('bar')
+    refute serializer.dump(secret_schema).include?('bar')
   end
 
   private
@@ -107,6 +107,19 @@ class CLITest < Minitest::Unit::TestCase
 
   def decrypt(path)
     runcli "decrypt", "-p", pubkey, "-k", privkey, path
+  end
+
+  def secret_schema
+    {
+      "a" => {
+        "severity" => "LOW",
+        "description" => "omg",
+        "type" => "PASSWORD",
+        "rotation" => "Dont know lol",
+        "urls" => ["http://omg.com"],
+        "secret" => "omg"
+      }
+    }
   end
 
   def runcli(*args)
