@@ -56,7 +56,7 @@ class CLITest < Minitest::Unit::TestCase
     f.puts JSON.dump({a: "b"})
     f.close
 
-    runcli "encrypt", f.path # no pubkey specified
+    runcli "encrypt", "--no-prompt", f.path # no pubkey specified
 
     first_run = JSON.load(File.read(f.path))
     # We don't have the decryption key to this, and it may change over time,

@@ -10,6 +10,7 @@ class EJSON
     DEFAULT_PUBLIC_KEY = "https://s3.amazonaws.com/shopify-ops/ejson-publickey.pem"
     class_option "privkey", type: :string, aliases: "-k", desc: "Path to PKCS7 private key in PEM format", default: ENV['EJSON_PRIVATE_KEY_PATH']
     class_option "pubkey",  type: :string, aliases: "-p", desc: "Path or URL to PKCS7 public key in PEM format",  default: ENV['EJSON_PUBLIC_KEY_PATH']
+    class_option "no-prompt", :type => :boolean, desc: "Don't prompt when downloading the default public key"
 
     default_task :encrypt
 
@@ -90,12 +91,14 @@ class EJSON
     end
 
     def download_public_key(url)
-      puts "EJSON is going to download the public key from: #{url}"
-      print "Do you want to continue? (Y/n):"
-      response = gets.chomp
-      unless response == "" || response.downcase == "y"
-        puts "Operation cancelled"
-        exit 0
+      unless options['no-prompt']
+        puts "EJSON is going to download the public key from: #{url}"
+        print "Do you want to continue? (Y/n):"
+        response = gets.chomp
+        unless response == "" || response.downcase == "y"
+          puts "Operation cancelled"
+          exit 0
+        end
       end
 
       uri = URI.parse(url)
