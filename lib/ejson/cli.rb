@@ -6,8 +6,11 @@ require 'net/http'
 class EJSON
 
   class CLI < Thor
+    SEARCH_PATHS = [File.join(Dir.home, '.ejson'), File.join('', 'etc', 'ejson')]
+    DEFAULT_PUBLIC_KEY = "https://s3.amazonaws.com/shopify-ops/ejson-publickey.pem"
     class_option "privkey", type: :string, aliases: "-k", desc: "Path to PKCS7 private key in PEM format", default: ENV['EJSON_PRIVATE_KEY_PATH']
-    class_option "pubkey",  type: :string, aliases: "-p", desc: "Path or URL to PKCS7 public key in PEM format",  default: (ENV['EJSON_PUBLIC_KEY_PATH'] || "https://s3.amazonaws.com/shopify-ops/ejson-publickey.pem")
+    class_option "pubkey",  type: :string, aliases: "-p", desc: "Path or URL to PKCS7 public key in PEM format",  default: ENV['EJSON_PUBLIC_KEY_PATH']
+    class_option "no-prompt", :type => :boolean, desc: "Don't prompt when downloading the default public key"
 
     default_task :encrypt
 
@@ -15,7 +18,7 @@ class EJSON
     method_option :out, type: :string, default: false, aliases: "-o", desc: "Write to a file rather than stdout"
     def decrypt(file)
       ciphertext = File.read(file)
-      ej = EJSON.new(pubkey, options[:privkey])
+      ej = EJSON.new(pubkey, privkey)
       output = JSON.pretty_generate(ej.load(ciphertext).decrypt_all)
       if options[:out]
         File.open(options[:out], "w") { |f| f.puts output }
@@ -67,26 +70,49 @@ class EJSON
     end
 
     def pubkey
-      @pubkey ||= _pubkey
+      if options[:pubkey] =~ %r{https://}
+        download_public_key(options[:pubkey])
+      else
+        return options[:pubkey] if options[:pubkey]
+        SEARCH_PATHS.each do |path|
+          full_path = File.join(path, "publickey.pem")
+          return full_path if File.exist?(full_path)
+        end
+        download_public_key(DEFAULT_PUBLIC_KEY)
+      end
     end
 
-    def _pubkey
-      if options[:pubkey] =~ %r{https://}
-        uri = URI.parse(options[:pubkey])
-        http = Net::HTTP.new(uri.host, uri.port)
-        http.use_ssl = true
-        http.verify_mode = OpenSSL::SSL::VERIFY_PEER
-        req = Net::HTTP::Get.new(URI.parse(options[:pubkey]).request_uri)
-        resp = http.request(req)
-        resp.value # raises on code >399
-        f = Tempfile.new("pubkey")
-        f.write resp.body
-        f.close
-        at_exit { f.unlink }
-        f.path
-      else
-        options[:pubkey]
+    def privkey
+      return options[:privkey] if options[:privkey]
+      SEARCH_PATHS.each do |path|
+        full_path = File.join(path, "privatekey.pem")
+        return full_path if File.exist?(full_path)
       end
+    end
+
+    def download_public_key(url)
+      unless options['no-prompt']
+        puts "EJSON is going to download the public key from: #{url}"
+        print "Do you want to continue? (Y/n):"
+        response = gets.chomp
+        unless response == "" || response.downcase == "y"
+          puts "Operation cancelled"
+          exit 0
+        end
+      end
+
+      uri = URI.parse(url)
+      http = Net::HTTP.new(uri.host, uri.port)
+      http.use_ssl = true
+      http.verify_mode = OpenSSL::SSL::VERIFY_PEER
+      req = Net::HTTP::Get.new(uri.request_uri)
+      resp = http.request(req)
+      resp.value # raises on code >399
+      FileUtils.mkpath(SEARCH_PATHS.first)
+      f = File.new(File.join(SEARCH_PATHS.first, "publickey.pem"), "w")
+      f.write resp.body
+      f.close
+      f.path
     end
 
   end
