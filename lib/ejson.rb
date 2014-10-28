@@ -1,81 +1,35 @@
 require 'json'
-require 'forwardable'
-require 'ejson/encryption'
 
-class EJSON
-  extend Forwardable
-  def_delegators :@encryption, :load_string, :dump_string
+require 'ejson/serializer'
+require 'ejson/data'
 
-  def initialize(public_key, private_key = nil)
-    @encryption = Encryption.new(public_key, private_key)
+module EJSON
+
+  COMMENT   = /\A_/
+  ENCRYPTED = /\AEJ\[1,(.*)\]\n*\z/m
+
+  MissingPublicKey        = Class.new(StandardError)
+  MissingPrivateKey       = Class.new(StandardError)
+  ExpectedEncryptedString = Class.new(StandardError)
+
+  # raises EJSON::MissingPublicKey
+  # raises JSON::ParserError
+  # raises OpenSSL::X509::CertificateError
+  def self.encrypt(json_text)
+    unmarshaled, pubkey = EJSON::Serializer.load_json(json_text)
+    data = EJSON::Data.new(unmarshaled, pubkey)
+    encrypted = data.encrypt
+    EJSON::Serializer.dump_json(encrypted)
   end
 
-  def load(json_text)
-    Data.new(JSON.load(json_text), @encryption)
-  end
-
-  def serializer
-    @serializer ||= Serializer.new(@encryption)
-  end
-
-  class Serializer
-
-    def initialize(encryption)
-      @encryption = encryption
-    end
-
-    def dump(data)
-      data = Data.new(data, @encryption) unless data.is_a?(Data)
-      data.dump
-    end
-
-    def load(data)
-      Data.new(JSON.parse(data), @encryption).decrypt_all
-    end
-
-  end
-
-  class Data
-    extend Forwardable
-    def_delegators :@data, :[]=
-
-    attr_reader :encryption
-    def initialize(data, encryption)
-      @data, @encryption = data, encryption
-    end
-
-    def dump
-      JSON.pretty_generate(encrypt_all(@data))
-    end
-
-    def encrypt_all(data=@data)
-      case data
-      when Hash
-        Hash[ data.map { |k,v| [k, encrypt_all(v)] } ]
-      when Array
-        data.map { |d| encrypt_all(d) }
-      when String
-        encryption.dump(data)
-      else
-        data
-      end
-    end
-
-    def decrypt_all(data=@data)
-      case data
-      when Hash
-        Hash[ data.map { |k,v| [k, decrypt_all(v)] } ]
-      when Array
-        data.map { |d| decrypt_all(d) }
-      when String
-        encryption.load(data)
-      else
-        data
-      end
-    end
-
+  # raises EJSON::MissingPrivateKey
+  # raises EJSON::ExpectedEncryptedString
+  def self.decrypt(json_text, keydir)
+    unmarshaled, pubkey = EJSON::Serializer.load_json(json_text)
+    data = EJSON::Data.new(unmarshaled, pubkey)
+    decrypted = data.decrypt(keydir)
+    EJSON::Serializer.dump_json(decrypted)
   end
 
 end
-
 

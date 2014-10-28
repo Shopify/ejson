@@ -1,3 +1,3 @@
-class EJSON
-  VERSION = "0.4.0"
+module EJSON
+  VERSION = "1.0.0.dev"
 end

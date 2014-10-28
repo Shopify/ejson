@@ -10,52 +10,69 @@ It's on rubygems. Just `gem install ejson` or add it to your `Gemfile`.
 
 ## Usage
 
-#### 1) Create a `secrets.ejson`:
+#### 1) Generate a keypair
+
+If you work at Shopify and are using this for a work-related project, ask the
+Ops or Stack teams to generate you an `ejson` key.
+
+Otherwise, run `ejson keygen`. It'll print two blocks in PEM format. The first
+is the private key, which you should save to a file (starting with the BEGIN
+RSA PRIVATE KEY line and ending with the END RSA PRIVATE KEY line, inclusive).
+
+Copy the `-----BEGIN CERTIFICATE-----` line into your pastebuffer for now.
+
+#### 2) Create a `secrets.ejson`:
 
     echo '{"a": "b"}' > config/secrets.production.ejson
 
 Keys in this file will remain in cleartext, while values will all be encrypted.
-It can be arbitrarily nested.
+It can be arbitrarily nested. All json types are supported, and only strings
+will be encrypted.
 
-#### 2) Encrypt the file:
+Any keys whose names begin with an underscore will not be encrypted:
+
+```json
+{
+  "secret": {
+    "_decription": "super secret key",
+    "value": "<encrypted value>"
+  }
+}
+```
+
+The file must have a toplevel key named `_public_key`, which should be an X509
+certificate, in PEM format, for an RSA public key. This is what you copied to
+your pastebuffer in step 1 above. You can paste it into the file now.
+
+```json
+{
+  "_public_key": "-----BEGIN CERTIFICATE----\nMIID.......",
+  "secret": "plaintext",
+}
+```
+
+#### 3) Encrypt the file:
 
     ejson
 
-This updates `config/secrets.ejson` in place, encrypting any newly-added or
+This updates `config/secrets.production.ejson` in place, encrypting any newly-added or
 modified values that are not yet encrypted. `ejson` is short-hand for `ejson encrypt`.
 
-By default, it uses a public key that you won't be able to decrypt (and
-shouldn't use because we *can* decrypt it!). You can use your own by following
-the "Custom keypair" directions below. Feel free to fork the gem to reference
-your own keypair by default.
+EJSON always uses the public key found in the `ejson` file to encrypt the secrets.
 
-#### 3) Decrypt the file:
+#### 4) Decrypt the file:
 
-     ejson decrypt -k ~/.keys/ejson.priv.pem -p config/ejson.pub.pem secrets.production.ejson > secrets.production.json
+     ejson decrypt --keydir /path/to/keydir --out secrets.production.json secrets.production.ejson
      # OR
-     ejson decrypt -i -k ~/.keys/ejson.priv.pem -p config/ejson.pub.pem secrets.production.ejson
+     ejson decrypt --keydir /path/to/keydir secrets.production.ejson
 
 Unlike encrypt, decrypt doesn't update the file in-place; it prints the
-decrypted contents to stdout. It also requires access to the private key
-created in step 1. By default, the secrets will be decrypted to stdout,
-but passing the `-i` flag causes them to be overwritten to the input file.
+decrypted contents to stdout (or a file, if provided with `--out`). It also
+requires access to the private key created in step 1.
+
+The `--keydir` parameter must be a path to a directory containing the private
+key for the public key used to encrypt the `ejson` file.  The directory can
+contain any number of `*.pem` files, and `ejson` will choose the correct one to
+use automatically.
 
 #### See `ejson help` for more information.
-
-## Custom keypair:
-
-We use a single keypair internally; the default public key is fetched from S3
-on each run. However, you can generate your own keypair like so:
-
-    openssl req -x509 -nodes -days 100000 -newkey rsa:2048 -keyout privatekey.pem -out publickey.pem -subj '/O=Your Organization'
-
-`publickey.pem` and `privatekey.pem` are created. Move `privatekey.pem`
-somewhere more private, and move `publickey.pem` somewhere more public.
-
-Then you can encrypt like:
-
-    ejson encrypt -p publickey.pem secrets.ejson
-
-If you'd like to fork the gem to reference your own public key, that
-information lives around line 10 of `lib/ejson/cli.rb`.
-

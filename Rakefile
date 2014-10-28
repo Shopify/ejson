@@ -1,7 +1,9 @@
-require "bundler/gem_tasks"
+require 'bundler/gem_tasks'
+
+require 'rake/testtask'
 
 task default: :test
 
-task :test do
-  exec "ruby -I./lib test/ejson_test.rb"
+Rake::TestTask.new do |t|
+  t.pattern = 'test/*_test.rb'
 end
