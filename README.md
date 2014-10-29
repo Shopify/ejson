@@ -15,15 +15,17 @@ It's on rubygems. Just `gem install ejson` or add it to your `Gemfile`.
 If you work at Shopify and are using this for a work-related project, ask the
 Ops or Stack teams to generate you an `ejson` key.
 
-Otherwise, run `ejson keygen`. It'll print two blocks in PEM format. The first
-is the private key, which you should save to a file (starting with the BEGIN
-RSA PRIVATE KEY line and ending with the END RSA PRIVATE KEY line, inclusive).
+Otherwise, run `ejson keygen`. It'll print two blocks. The first is the private
+key in PEM format, which you should save to a file (starting with the `BEGIN
+RSA PRIVATE KEY` line and ending with the `END RSA PRIVATE KEY` line,
+inclusive).
 
-Copy the `-----BEGIN CERTIFICATE-----` line into your pastebuffer for now.
+The second block is a blank EJSON file, containing the public key that encrypts
+to the private key you saved.
 
 #### 2) Create a `secrets.ejson`:
 
-    echo '{"a": "b"}' > config/secrets.production.ejson
+Copy the JSON from step 1 and save it as a file ending in `.ejson`.
 
 Keys in this file will remain in cleartext, while values will all be encrypted.
 It can be arbitrarily nested. All json types are supported, and only strings
@@ -41,8 +43,8 @@ Any keys whose names begin with an underscore will not be encrypted:
 ```
 
 The file must have a toplevel key named `_public_key`, which should be an X509
-certificate, in PEM format, for an RSA public key. This is what you copied to
-your pastebuffer in step 1 above. You can paste it into the file now.
+certificate, in PEM format, for an RSA public key. The file generated in step 1
+already has the `_public_key` in it.
 
 ```json
 {

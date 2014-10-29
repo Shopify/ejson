@@ -65,8 +65,10 @@ module EJSON
           -newkey rsa:2048 \
           -keyout /dev/stderr \
           -subj '#{subject}' \
-        | tr "\\\\n" "|" | sed 's/|/\\\\n/g'
-        echo
+        | tr "\\\\n" "|" \
+        | sed 's/|/\\\\n/g' \
+        | sed 's/-----BEGIN CERT/{"_public_key":"-----BEGIN CERT/' \
+        | sed 's/END CERTIFICATE-----.n/END CERTIFICATE-----"}/'
       SH
     end
 
