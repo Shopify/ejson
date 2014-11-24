@@ -1,0 +1,6 @@
+bin/ejson
+build/darwin-amd64/ejson
+build/linux-amd64/ejson
+ejson.gemspec
+lib/ejson/version.rb
+LICENSE.txt
