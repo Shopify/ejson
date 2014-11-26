@@ -41,6 +41,15 @@ encrypted.
 }
 ```
 
+Also note that this underscore "unencryptable" attribute does not inherit. For
+example, the password in this excerpt `will` be encrypted.
+
+```
+"_unencryptable": {
+  "password": "encrypted anyway"
+}
+```
+
 ## SECRET SCHEMA
 
 When a value is encrypted, it will be replaced by a relatively long string of
