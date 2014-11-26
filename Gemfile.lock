@@ -17,10 +17,18 @@ GEM
       clamp (~> 0.6)
       ffi
       json (>= 1.7.7)
+    hpricot (0.8.6)
     json (1.8.1)
+    mustache (0.99.7)
+    rdiscount (2.1.7.1)
+    ronn (0.7.3)
+      hpricot (>= 0.8.2)
+      mustache (>= 0.7.0)
+      rdiscount (>= 1.5.8)
 
 PLATFORMS
   ruby
 
 DEPENDENCIES
   fpm
+  ronn
