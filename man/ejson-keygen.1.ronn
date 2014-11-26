@@ -1,0 +1,24 @@
+ejson-keygen(1) -- Generate a new keypair for use with ejson
+============================================================
+
+## SYNOPSIS
+
+`ejson keygen` [--write]
+
+## DESCRIPTION
+
+Generates a new keypair suitable for use with ejson(1) and prints the resulting
+public and private keys to the screen. The public key should be inserted into an
+ejson(5) document and the private key should be stored in the keydir of the
+decrypting system(s).
+
+## OPTIONS
+
+  * `--write`:
+    If specified, the keypair will be written directly to the keydir, rather
+    than simply printed to the screen. The public key will still be printed, but
+    the private key will be inserted into the keydir (alias: `-w`).
+
+## SEE ALSO
+
+ejson(1) ejson(5) ejson-encrypt(1) ejson-decrypt(1)

@@ -1,0 +1,17 @@
+ejson-decrypt(1) -- Decrypt an ejson file to stdout
+===================================================
+
+## SYNOPSIS
+
+`ejson decrypt` FILE
+
+## DESCRIPTION
+
+Decrypt the given file; that is, decrypt all the encrypted keys within it,
+printing the full decrypted file to stdout. The key mentioned in the ejson(5)
+file must be present in the keydir. See ejson(1) for instructions on changing
+the keydir.
+
+## SEE ALSO
+
+ejson(1) ejson(5) ejson-encrypt(1) ejson-keygen(1)
