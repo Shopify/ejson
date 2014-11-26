@@ -3,11 +3,31 @@ package main
 import (
 	"fmt"
 	"os"
+	"syscall"
 
 	"github.com/codegangsta/cli"
 )
 
+func execManpage(sec, page string) {
+	if err := syscall.Exec("/usr/bin/env", []string{"/usr/bin/env", "man", sec, page}, os.Environ()); err != nil {
+		fmt.Println("Exec error:", err)
+	}
+	os.Exit(1)
+}
+
 func main() {
+
+	// Rather than using the built-in help printer, display the bundled manpages.
+	cli.HelpPrinter = func(templ string, data interface{}) {
+		if cmd, ok := data.(cli.Command); ok {
+			switch cmd.Name {
+			case "encrypt", "decrypt", "keygen":
+				execManpage("1", "ejson-"+cmd.Name)
+			}
+		}
+		execManpage("1", "ejson")
+	}
+
 	app := cli.NewApp()
 	app.Flags = []cli.Flag{
 		cli.StringFlag{
