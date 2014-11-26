@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv='content-type' value='text/html;charset=utf8'>
+  <meta name='generator' value='Ronn/v0.7.3 (http://github.com/rtomayko/ronn/tree/0.7.3)'>
+  <title>ejson(1) - manage application secrets in source control via encrypted json</title>
+  <style type='text/css' media='all'>
+  /* style: man */
+  body#manpage {margin:0}
+  .mp {max-width:100ex;padding:0 9ex 1ex 4ex}
+  .mp p,.mp pre,.mp ul,.mp ol,.mp dl {margin:0 0 20px 0}
+  .mp h2 {margin:10px 0 0 0}
+  .mp > p,.mp > pre,.mp > ul,.mp > ol,.mp > dl {margin-left:8ex}
+  .mp h3 {margin:0 0 0 4ex}
+  .mp dt {margin:0;clear:left}
+  .mp dt.flush {float:left;width:8ex}
+  .mp dd {margin:0 0 0 9ex}
+  .mp h1,.mp h2,.mp h3,.mp h4 {clear:left}
+  .mp pre {margin-bottom:20px}
+  .mp pre+h2,.mp pre+h3 {margin-top:22px}
+  .mp h2+pre,.mp h3+pre {margin-top:5px}
+  .mp img {display:block;margin:auto}
+  .mp h1.man-title {display:none}
+  .mp,.mp code,.mp pre,.mp tt,.mp kbd,.mp samp,.mp h3,.mp h4 {font-family:monospace;font-size:14px;line-height:1.42857142857143}
+  .mp h2 {font-size:16px;line-height:1.25}
+  .mp h1 {font-size:20px;line-height:2}
+  .mp {text-align:justify;background:#fff}
+  .mp,.mp code,.mp pre,.mp pre code,.mp tt,.mp kbd,.mp samp {color:#131211}
+  .mp h1,.mp h2,.mp h3,.mp h4 {color:#030201}
+  .mp u {text-decoration:underline}
+  .mp code,.mp strong,.mp b {font-weight:bold;color:#131211}
+  .mp em,.mp var {font-style:italic;color:#232221;text-decoration:none}
+  .mp a,.mp a:link,.mp a:hover,.mp a code,.mp a pre,.mp a tt,.mp a kbd,.mp a samp {color:#0000ff}
+  .mp b.man-ref {font-weight:normal;color:#434241}
+  .mp pre {padding:0 4ex}
+  .mp pre code {font-weight:normal;color:#434241}
+  .mp h2+pre,h3+pre {padding-left:0}
+  ol.man-decor,ol.man-decor li {margin:3px 0 10px 0;padding:0;float:left;width:33%;list-style-type:none;text-transform:uppercase;color:#999;letter-spacing:1px}
+  ol.man-decor {width:100%}
+  ol.man-decor li.tl {text-align:left}
+  ol.man-decor li.tc {text-align:center;letter-spacing:4px}
+  ol.man-decor li.tr {text-align:right;float:right}
+  </style>
+</head>
+<!--
+  The following styles are deprecated and will be removed at some point:
+  div#man, div#man ol.man, div#man ol.head, div#man ol.man.
+
+  The .man-page, .man-decor, .man-head, .man-foot, .man-title, and
+  .man-navigation should be used instead.
+-->
+<body id='manpage'>
+  <div class='mp' id='man'>
+
+  <div class='man-navigation' style='display:none'>
+    <a href="#NAME">NAME</a>
+    <a href="#SYNOPSIS">SYNOPSIS</a>
+    <a href="#DESCRIPTION">DESCRIPTION</a>
+    <a href="#OPTIONS">OPTIONS</a>
+    <a href="#COMMANDS">COMMANDS</a>
+    <a href="#WORKFLOW">WORKFLOW</a>
+    <a href="#BUGS">BUGS</a>
+    <a href="#COPYRIGHT">COPYRIGHT</a>
+    <a href="#SEE-ALSO">SEE ALSO</a>
+  </div>
+
+  <ol class='man-decor man-head man head'>
+    <li class='tl'>ejson(1)</li>
+    <li class='tc'></li>
+    <li class='tr'>ejson(1)</li>
+  </ol>
+
+  <h2 id="NAME">NAME</h2>
+<p class="man-name">
+  <code>ejson</code> - <span class="man-whatis">manage application secrets in source control via encrypted json</span>
+</p>
+
+<h2 id="SYNOPSIS">SYNOPSIS</h2>
+
+<p><code>ejson</code> [<code>--keydir</code> <var>path</var>] COMMAND [ARGS]</p>
+
+<h2 id="DESCRIPTION">DESCRIPTION</h2>
+
+<p><code>ejson</code> is a utility for managing a collection of secrets in source control. The
+secrets are encrypted using public key, elliptic curve cryptography. Secrets are
+collected in a JSON file, in which all the string values are encrypted. Public
+keys are embedded in the file, and the decrypter looks up the corresponding
+private key from its local filesystem.</p>
+
+<p>See <a class="man-ref" href="ejson.5.html">ejson<span class="s">(5)</span></a> for more information on the <code>ejson</code> file format, and read on for a
+workflow example.</p>
+
+<h2 id="OPTIONS">OPTIONS</h2>
+
+<dl>
+<dt><code>--keydir</code>=<var>path</var></dt><dd>Path to directory containing private keys. Defaults to <code>/opt/ejson/keys</code>.
+Setting <code>EJSON_KEYSDIR</code> will also set this value, with lower precedence.</dd>
+</dl>
+
+
+<h2 id="COMMANDS">COMMANDS</h2>
+
+<dl>
+<dt><code>ejson encrypt</code> <a class="man-ref" href="ejson-encrypt.1.html">ejson-encrypt<span class="s">(1)</span></a></dt><dd><p>Encrypt one or more ejson files (alias: <code>ejson e</code>)</p></dd>
+<dt><code>ejson decrypt</code> <a class="man-ref" href="ejson-decrypt.1.html">ejson-decrypt<span class="s">(1)</span></a></dt><dd><p>Decrypt an ejson file (alias: <code>ejson d</code>)</p></dd>
+<dt><code>ejson keygen</code> <a class="man-ref" href="ejson-keygen.1.html">ejson-keygen<span class="s">(1)</span></a></dt><dd><p>Generate an ejson keypair (alias: <code>ejson g</code>)</p></dd>
+</dl>
+
+
+<h2 id="WORKFLOW">WORKFLOW</h2>
+
+<h3 id="1-Create-the-Keydir">1: Create the Keydir</h3>
+
+<p>By default, EJSON looks for keys in <code>/opt/ejson/keys</code>. You can change this by
+setting <code>EJSON_KEYDIR</code> or passing the <code>-keydir</code> option.</p>
+
+<pre><code>$ mkdir -p /opt/ejson/keys
+</code></pre>
+
+<h3 id="2-Generate-a-keypair">2: Generate a keypair</h3>
+
+<p>When called with <code>-w</code>, <code>ejson keygen</code> will write the keypair into the <code>keydir</code>
+and print the public key. Without <code>-w</code>, it will print both keys to stdout. This
+is useful if you have to distribute the key to multiple servers via
+configuration management, etc.</p>
+
+<pre><code>$ ejson keygen
+Public Key:
+63ccf05a9492e68e12eeb1c705888aebdcc0080af7e594fc402beb24cce9d14f
+Private Key:
+75b80b4a693156eb435f4ed2fe397e583f461f09fd99ec2bd1bdef0a56cf6e64
+
+$ ./ejson keygen -w
+53393332c6c7c474af603c078f5696c8fe16677a09a711bba299a6c1c1676a59
+$ cat /opt/ejson/keys/5339*
+888a4291bef9135729357b8c70e5a62b0bbe104a679d829cdbe56d46a4481aaf
+</code></pre>
+
+<h3 id="3-Create-an-ejson-file">3: Create an ejson file</h3>
+
+<p>The format is described in more detail in <a class="man-ref" href="ejson.5.html">ejson<span class="s">(5)</span></a>. For now, create a file that
+looks something like this. Fill in the <code>&lt;key></code> with whatever you got back in
+step 2.</p>
+
+<p>Create this file as <code>test.ejson</code>:</p>
+
+<pre><code>{
+  "_public_key": "&lt;key>",
+  "database_password": "1234password"
+}
+</code></pre>
+
+<h3 id="4-Encrypt-the-file">4: Encrypt the file</h3>
+
+<p>Running <code>ejson encrypt test.ejson</code> will encrypt any new plaintext keys in the
+file, and leave any existing encrypted keys untouched:</p>
+
+<pre><code>{
+  "_public_key": "63ccf05a9492e68e12eeb1c705888aebdcc0080af7e594fc402beb24cce9d14f",
+  "database_password": "EJ[1:WGj2t4znULHT1IRveMEdvvNXqZzNBNMsJ5iZVy6Dvxs=:kA6ekF8ViYR5ZLeSmMXWsdLfWr7wn9qS:fcHQtdt6nqcNOXa97/M278RX6w==]"
+}
+</code></pre>
+
+<p>Try adding another plaintext secret to the file and run <code>ejson encrypt
+test.ejson</code> again. The <code>database_password</code> field will not be changed, but the
+new secret will be encrypted.</p>
+
+<h3 id="5-Decrypt-the-file">5: Decrypt the file</h3>
+
+<p>To decrypt the file, you must have a file present in the <code>keydir</code> whose name is
+the 64-byte hex-encoded public key exactly as embedded in the <a class="man-ref" href="ejson.5.html">ejson<span class="s">(5)</span></a> document.
+The contents of that file must be the similarly-encoded private key. If you used
+<code>ejson keygen -w</code>, you've already got this covered.</p>
+
+<p>Unlike <a class="man-ref" href="ejson-encrypt.1.html">ejson-encrypt<span class="s">(1)</span></a>, which overwrites the specified files, <a class="man-ref" href="ejson-decrypt.1.html">ejson-decrypt<span class="s">(1)</span></a>
+only takes one file parameter, and prints the output to <code>stdout</code>:</p>
+
+<pre><code>$ ejson decrypt foo.ejson
+{
+  "_public_key": "63ccf05a9492e68e12eeb1c705888aebdcc0080af7e594fc402beb24cce9d14f",
+  "database_password": "1234password"
+}
+</code></pre>
+
+<h2 id="BUGS">BUGS</h2>
+
+<p>Please file bugs at https://github.com/Shopify/ejson</p>
+
+<h2 id="COPYRIGHT">COPYRIGHT</h2>
+
+<p>ejson is copyright (C) 2014 Shopify under MIT license.</p>
+
+<h2 id="SEE-ALSO">SEE ALSO</h2>
+
+<p><a class="man-ref" href="ejson.5.html">ejson<span class="s">(5)</span></a> <a class="man-ref" href="ejson-encrypt.1.html">ejson-encrypt<span class="s">(1)</span></a> <a class="man-ref" href="ejson-decrypt.1.html">ejson-decrypt<span class="s">(1)</span></a> <a class="man-ref" href="ejson-keygen.1.html">ejson-keygen<span class="s">(1)</span></a></p>
+
+
+  <ol class='man-decor man-foot man foot'>
+    <li class='tl'></li>
+    <li class='tc'>November 2014</li>
+    <li class='tr'>ejson(1)</li>
+  </ol>
+
+  </div>
+</body>
+</html>
