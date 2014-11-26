@@ -24,13 +24,13 @@ workflow example.
 
 ## COMMANDS
 
-  * `ejson encrypt(1)`:
+  * `ejson encrypt` ejson-encrypt(1):
     Encrypt one or more ejson files (alias: `ejson e`)
 
-  * `ejson decrypt(1)`:
+  * `ejson decrypt` ejson-decrypt(1):
     Decrypt an ejson file (alias: `ejson d`)
 
-  * `ejson keygen(1)`:
+  * `ejson keygen` ejson-keygen(1):
     Generate an ejson keypair (alias: `ejson g`)
 
 ## WORKFLOW
@@ -102,7 +102,7 @@ the 64-byte hex-encoded public key exactly as embedded in the ejson(5) document.
 The contents of that file must be the similarly-encoded private key. If you used
 `ejson keygen -w`, you've already got this covered.
 
-Unlike `ejson encrypt(1)`, which overwrites the specified files, `ejson decrypt(1)`
+Unlike `ejson-encrypt(1)`, which overwrites the specified files, `ejson-decrypt(1)`
 only takes one file parameter, and prints the output to `stdout`:
 
 ```
