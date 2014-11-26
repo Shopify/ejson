@@ -70,12 +70,8 @@ $(DEB): build/bin/linux-amd64 man
 		--maintainer="Burke Libbey <burke.libbey@shopify.com>" \
 		--description="utility for managing a collection of secrets in source control. Secrets are encrypted using public key, elliptic curve cryptography." \
 		--url="https://github.com/Shopify/ejson" \
-		./$<=/usr/bin/$(NAME) \
-		./build/man/ejson.1.gz=/usr/share/man/man1/ \
-		./build/man/ejson-encrypt.1.gz=/usr/share/man/man1/ \
-		./build/man/ejson-decrypt.1.gz=/usr/share/man/man1/ \
-		./build/man/ejson-keygen.1.gz=/usr/share/man/man1/ \
-		./build/man/ejson.5.gz=/usr/share/man/man5/
+		./build/man/=/usr/share/man/ \
+		./$<=/usr/bin/$(NAME)
 
 clean:
 	rm -rf build pkg rubygem/build rubygem/*.gem

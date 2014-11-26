@@ -10,4 +10,5 @@ dir = case platform
 
 bindir = File.expand_path("../../build/#{dir}", __FILE__)
 ENV['PATH'] = "#{bindir}:#{ENV['PATH']}"
+ENV['EJSON_MANPATH'] = File.expand_path("../../man", __FILE__)
 exec "ejson", *ARGV
