@@ -11,8 +11,8 @@ import (
 	"os"
 	"strings"
 
-	"github.com/burke/ej2/crypto"
-	"github.com/burke/ej2/json"
+	"github.com/Shopify/ejson/crypto"
+	"github.com/Shopify/ejson/json"
 )
 
 // GenerateKeypair is used to create a new ejson keypair. It returns the keys as

@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"io/ioutil"
 
-	"github.com/burke/ej2"
+	"github.com/Shopify/ejson"
 )
 
 func encryptAction(args []string) error {
