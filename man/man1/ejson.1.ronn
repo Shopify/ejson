@@ -13,8 +13,8 @@ collected in a JSON file, in which all the string values are encrypted. Public
 keys are embedded in the file, and the decrypter looks up the corresponding
 private key from its local filesystem.
 
-See ejson(5) for more information on the `ejson` file format, and read towards
-the end of this page for a workflow example.
+See ejson(5) for more information on the `ejson` file format, and read on for a
+workflow example.
 
 ## OPTIONS
 
@@ -66,9 +66,9 @@ $ cat /opt/ejson/keys/5339*
 
 ### 3: Create an ejson file
 
-The format is described in more detail [later on](#format). For now, create a
-file that looks something like this. Fill in the `<key>` with whatever you got
-back in step 2.
+The format is described in more detail in ejson(5). For now, create a file that
+looks something like this. Fill in the `<key>` with whatever you got back in
+step 2.
 
 Create this file as `test.ejson`:
 
