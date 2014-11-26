@@ -18,7 +18,7 @@ func main() {
 		},
 	}
 	app.Usage = "manage encrypted secrets using public key encryption"
-	app.Version = "1.0.0"
+	app.Version = VERSION
 	app.Author = "Burke Libbey"
 	app.Email = "burke.libbey@shopify.com"
 	app.Commands = []cli.Command{
