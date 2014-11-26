@@ -37,8 +37,12 @@ $(GEM): rubygem/$(NAME)-$(VERSION).gem
 rubygem/$(NAME)-$(VERSION).gem: \
 	rubygem/lib/$(NAME)/version.rb \
 	rubygem/build/linux-amd64/ejson \
-	rubygem/build/darwin-amd64/ejson
+	rubygem/build/darwin-amd64/ejson \
+	rubygem/man
 	cd rubygem && gem build ejson.gemspec
+
+rubygem/man: man
+	cp -a build/man $@
 
 rubygem/build/darwin-amd64/ejson: build/bin/darwin-amd64
 	mkdir -p $(@D)
