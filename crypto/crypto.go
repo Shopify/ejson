@@ -14,6 +14,7 @@ import (
 	"crypto/rand"
 	"errors"
 	"fmt"
+	"os"
 
 	"golang.org/x/crypto/nacl/box"
 )
@@ -51,7 +52,15 @@ var ErrDecryptionFailed = errors.New("couldn't decrypt message")
 // Generate generates a new Curve25519 keypair into a (presumably) empty Keypair
 // structure.
 func (k *Keypair) Generate() (err error) {
-	k.Public, k.Private, err = box.GenerateKey(rand.Reader)
+	// you'd think we could use crypto/rand for this, but it provides no API for
+	// /dev/random, so we need to access it directly.
+	rand, err := os.Open("/dev/random")
+	if err != nil {
+		return err
+	}
+	// This will hang if insufficient entropy is availalable.
+	k.Public, k.Private, err = box.GenerateKey(rand)
+	_ = rand.Close()
 	return
 }
 
@@ -143,7 +152,7 @@ func (d *Decrypter) decrypt(bm *boxedMessage) ([]byte, error) {
 
 func genNonce() (*[24]byte, error) {
 	var nonce [24]byte
-	n, err := rand.Read(nonce[0:24])
+	n, err := rand.Read(nonce[0:24]) // /dev/urandom
 	if err != nil {
 		return nil, err
 	}
