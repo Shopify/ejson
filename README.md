@@ -24,6 +24,8 @@ The main benefits provided by `ejson` are:
   provisioned by Configuration Management).
 * Simple, well-tested, easily-auditable source.
 
+See [the manpages](https://shopify.github.io/ejson) for more technical documentation.
+
 ## Workflow
 
 ### 1: Create the Keydir
