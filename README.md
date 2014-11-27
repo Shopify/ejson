@@ -12,6 +12,8 @@ collected in a JSON file, in which all the string values are encrypted. Public
 keys are embedded in the file, and the decrypter looks up the corresponding
 private key from its local filesystem.
 
+![demo](http://burkelibbey.s3.amazonaws.com/ejson-demo.gif)
+
 The main benefits provided by `ejson` are:
 
 * Secrets can be safely stored in a git repo.
