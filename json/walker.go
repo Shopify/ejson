@@ -49,8 +49,7 @@ func (ew *Walker) Walk(data []byte) ([]byte, error) {
 	)
 	scanner.Reset()
 	for i, c := range data {
-		v := scanner.Step(&scanner, int(c))
-		switch v {
+		switch v := scanner.Step(&scanner, int(c)); v {
 		case json.ScanContinue:
 			// Uninteresting byte. Just advance to next.
 		case json.ScanBeginLiteral:
@@ -58,8 +57,8 @@ func (ew *Walker) Walk(data []byte) ([]byte, error) {
 			literalStart = i
 		case json.ScanObjectKey:
 			// The literal we just finished reading was a Key. Decide whether it was a
-			// comment by checking the first byte after the '"', then append it
-			// verbatim to the output buffer.
+			// encryptable by checking whether the first byte after the '"' was an
+			// underscore, then append it verbatim to the output buffer.
 			inLiteral = false
 			isComment = data[literalStart+1] == '_'
 			out = append(out, data[literalStart:i]...)
@@ -71,28 +70,16 @@ func (ew *Walker) Walk(data []byte) ([]byte, error) {
 			return out, nil
 		default:
 			if inLiteral {
+				inLiteral = false
 				// We finished reading some literal, and it wasn't a Key, meaning it's
 				// potentially encryptable. If it was a string, and the most recent Key
 				// encountered didn't begin with a '_', we are to encrypt it. In any
 				// other case, we append it verbatim to the output buffer.
-				inLiteral = false
-				if !isComment && data[literalStart] == '"' {
-					unquoted, ok := json.UnquoteBytes(data[literalStart:i])
-					if !ok {
-						return nil, fmt.Errorf("invalid json")
-					}
-					done, err := ew.Action(unquoted)
-					if err != nil {
-						return nil, err
-					}
-					q, err := quoteBytes(done)
-					if err != nil {
-						return nil, err
-					}
-					out = append(out, q...)
-				} else {
-					out = append(out, data[literalStart:i]...)
+				actioned, err := ew.runActionIfEncryptable(data[literalStart:i], isComment)
+				if err != nil {
+					return nil, err
 				}
+				out = append(out, actioned...)
 			}
 		}
 		if !inLiteral {
@@ -106,6 +93,25 @@ func (ew *Walker) Walk(data []byte) ([]byte, error) {
 		return nil, fmt.Errorf("invalid json")
 	}
 	return out, nil
+}
+
+func (ew *Walker) runActionIfEncryptable(data []byte, isComment bool) ([]byte, error) {
+	if !isComment && data[0] == '"' {
+		return ew.runAction(data)
+	}
+	return data, nil
+}
+
+func (ew *Walker) runAction(data []byte) ([]byte, error) {
+	unquoted, ok := json.UnquoteBytes(data)
+	if !ok {
+		return nil, fmt.Errorf("invalid json")
+	}
+	done, err := ew.Action(unquoted)
+	if err != nil {
+		return nil, err
+	}
+	return quoteBytes(done)
 }
 
 // probably a better way to do this, but...
