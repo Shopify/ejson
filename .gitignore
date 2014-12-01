@@ -6,3 +6,4 @@
 /rubygem/build/
 /rubygem/man/
 /rubygem/LICENSE.txt
+/rubygem/lib/ejson/version.rb
