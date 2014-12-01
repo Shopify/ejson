@@ -19,14 +19,14 @@ func TestGenerateKeypair(t *testing.T) {
 	})
 }
 
-func TestEncryptFile(t *testing.T) {
+func TestEncryptFileInPlace(t *testing.T) {
 	getMode = func(p string) (os.FileMode, error) {
 		return 0400, nil
 	}
 	defer func() { getMode = _getMode }()
-	Convey("EncryptFile", t, func() {
+	Convey("EncryptFileInPlace", t, func() {
 		Convey("called with a non-existent file", func() {
-			_, err := EncryptFile("/does/not/exist")
+			_, err := EncryptFileInPlace("/does/not/exist")
 			Convey("should fail with ENOEXIST", func() {
 				So(os.IsNotExist(err), ShouldBeTrue)
 			})
@@ -36,7 +36,7 @@ func TestEncryptFile(t *testing.T) {
 			readFile = func(p string) ([]byte, error) {
 				return []byte(`{"a": "b"]`), nil
 			}
-			_, err := EncryptFile("/doesnt/matter")
+			_, err := EncryptFileInPlace("/doesnt/matter")
 			readFile = ioutil.ReadFile
 			Convey("should fail", func() {
 				So(err, ShouldNotBeNil)
@@ -48,7 +48,7 @@ func TestEncryptFile(t *testing.T) {
 			readFile = func(p string) ([]byte, error) {
 				return []byte(`{"_public_key": "invalid"}`), nil
 			}
-			_, err := EncryptFile("/doesnt/matter")
+			_, err := EncryptFileInPlace("/doesnt/matter")
 			readFile = ioutil.ReadFile
 			Convey("should fail", func() {
 				So(err, ShouldNotBeNil)
@@ -65,7 +65,7 @@ func TestEncryptFile(t *testing.T) {
 				output = data
 				return nil
 			}
-			_, err := EncryptFile("/doesnt/matter")
+			_, err := EncryptFileInPlace("/doesnt/matter")
 			readFile = ioutil.ReadFile
 			writeFile = ioutil.WriteFile
 			Convey("should encrypt the file", func() {

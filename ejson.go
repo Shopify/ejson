@@ -25,12 +25,12 @@ func GenerateKeypair() (pub string, priv string, err error) {
 	return kp.PublicString(), kp.PrivateString(), nil
 }
 
-// EncryptFile takes a path to a file on disk, which must be a valid EJSON file
+// EncryptFileInPlace takes a path to a file on disk, which must be a valid EJSON file
 // (see README.md for more on what constitutes a valid EJSON file). Any
 // encryptable-but-unencrypted fields in the file will be encrypted using the
 // public key embdded in the file, and the resulting text will be written over
 // the file present on disk.
-func EncryptFile(filePath string) (int, error) {
+func EncryptFileInPlace(filePath string) (int, error) {
 	data, err := readFile(filePath)
 	if err != nil {
 		return -1, err
