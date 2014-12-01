@@ -82,7 +82,7 @@ $(DEB): build/bin/linux-amd64 man
 		./$<=/usr/bin/$(NAME)
 
 clean:
-	rm -rf build pkg rubygem/build rubygem/*.gem
+	rm -rf build pkg rubygem/{LICENSE.txt,lib/ejson/version.rb,build,*.gem}
 
 dev_bootstrap: versions
 	go get ./...
