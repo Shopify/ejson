@@ -80,7 +80,7 @@ func (k *Keypair) PrivateString() string {
 	return fmt.Sprintf("%x", k.Private)
 }
 
-// Encrypter returns an Encrypter instance, given a private key, to encrypt
+// Encrypter returns an Encrypter instance, given a public key, to encrypt
 // messages to the paired, unknown, private key.
 func (k *Keypair) Encrypter(peerPublic [32]byte) *Encrypter {
 	return NewEncrypter(k, peerPublic)
