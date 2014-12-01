@@ -33,7 +33,7 @@ func TestBoxedMessageRoundtripping(t *testing.T) {
 			So(IsBoxedMessage([]byte(wire)), ShouldBeTrue)
 			So(IsBoxedMessage([]byte("nope")), ShouldBeFalse)
 			So(IsBoxedMessage([]byte("EJ[]")), ShouldBeFalse)
-			So(IsBoxedMessage([]byte("EJ[1:a:a:a]")), ShouldBeTrue) // we could be stricter than this.
+			So(IsBoxedMessage([]byte("EJ[1:12345678901234567890123456789012345678901234:12345678901234567890123456789012:a]")), ShouldBeTrue) // we could be stricter than this.
 		})
 	})
 }
