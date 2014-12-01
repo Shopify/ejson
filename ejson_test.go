@@ -26,7 +26,7 @@ func TestEncryptFile(t *testing.T) {
 	defer func() { getMode = _getMode }()
 	Convey("EncryptFile", t, func() {
 		Convey("called with a non-existent file", func() {
-			err := EncryptFile("/does/not/exist")
+			_, err := EncryptFile("/does/not/exist")
 			Convey("should fail with ENOEXIST", func() {
 				So(os.IsNotExist(err), ShouldBeTrue)
 			})
@@ -36,7 +36,7 @@ func TestEncryptFile(t *testing.T) {
 			readFile = func(p string) ([]byte, error) {
 				return []byte(`{"a": "b"]`), nil
 			}
-			err := EncryptFile("/doesnt/matter")
+			_, err := EncryptFile("/doesnt/matter")
 			readFile = ioutil.ReadFile
 			Convey("should fail", func() {
 				So(err, ShouldNotBeNil)
@@ -48,7 +48,7 @@ func TestEncryptFile(t *testing.T) {
 			readFile = func(p string) ([]byte, error) {
 				return []byte(`{"_public_key": "invalid"}`), nil
 			}
-			err := EncryptFile("/doesnt/matter")
+			_, err := EncryptFile("/doesnt/matter")
 			readFile = ioutil.ReadFile
 			Convey("should fail", func() {
 				So(err, ShouldNotBeNil)
@@ -65,7 +65,7 @@ func TestEncryptFile(t *testing.T) {
 				output = data
 				return nil
 			}
-			err := EncryptFile("/doesnt/matter")
+			_, err := EncryptFile("/doesnt/matter")
 			readFile = ioutil.ReadFile
 			writeFile = ioutil.WriteFile
 			Convey("should encrypt the file", func() {

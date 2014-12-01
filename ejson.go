@@ -30,25 +30,25 @@ func GenerateKeypair() (pub string, priv string, err error) {
 // encryptable-but-unencrypted fields in the file will be encrypted using the
 // public key embdded in the file, and the resulting text will be written over
 // the file present on disk.
-func EncryptFile(filePath string) error {
+func EncryptFile(filePath string) (int, error) {
 	data, err := readFile(filePath)
 	if err != nil {
-		return err
+		return -1, err
 	}
 
 	fileMode, err := getMode(filePath)
 	if err != nil {
-		return err
+		return -1, err
 	}
 
 	var myKP crypto.Keypair
 	if err := myKP.Generate(); err != nil {
-		return err
+		return -1, err
 	}
 
 	pubkey, err := json.ExtractPublicKey(data)
 	if err != nil {
-		return err
+		return -1, err
 	}
 
 	encrypter := myKP.Encrypter(pubkey)
@@ -58,15 +58,14 @@ func EncryptFile(filePath string) error {
 
 	newdata, err := walker.Walk(data)
 	if err != nil {
-		return err
+		return -1, err
 	}
 
 	if err := writeFile(filePath, newdata, fileMode); err != nil {
-		return err
+		return -1, err
 	}
 
-	fmt.Printf("Wrote %d bytes to %s.\n", len(newdata), filePath)
-	return nil
+	return len(newdata), nil
 }
 
 // DecryptFile takes a path to an encrypted EJSON file and decrypts it to

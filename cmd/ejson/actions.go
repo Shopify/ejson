@@ -12,9 +12,11 @@ func encryptAction(args []string) error {
 		return fmt.Errorf("at least one file path must be given")
 	}
 	for _, filePath := range args {
-		if err := ejson.EncryptFile(filePath); err != nil {
+		n, err := ejson.EncryptFile(filePath)
+		if err != nil {
 			return err
 		}
+		fmt.Printf("Wrote %d bytes to %s.\n", n, filePath)
 	}
 	return nil
 }
