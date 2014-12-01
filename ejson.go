@@ -7,7 +7,6 @@ import (
 	"encoding/hex"
 	"fmt"
 	"io/ioutil"
-	"log"
 	"os"
 	"strings"
 
@@ -44,7 +43,7 @@ func EncryptFile(filePath string) error {
 
 	var myKP crypto.Keypair
 	if err := myKP.Generate(); err != nil {
-		log.Fatal("couldn't generate keypair: ", err)
+		return err
 	}
 
 	pubkey, err := json.ExtractPublicKey(data)
@@ -119,7 +118,7 @@ func findPrivateKey(pubkey *[32]byte, keydir string) (*[32]byte, error) {
 	keyFile := fmt.Sprintf("%s/%x", keydir, *pubkey)
 	fileContents, err := readFile(keyFile)
 	if err != nil {
-		return nil, fmt.Errorf("couldn't read key file at %s, indicated by _public_key field in ejson file", keyFile)
+		return nil, fmt.Errorf("couldn't read key file at %s, indicated by _public_key field in ejson file (%s)", keyFile, err.Error())
 	}
 
 	bs, err := hex.DecodeString(strings.TrimSpace(string(fileContents)))
