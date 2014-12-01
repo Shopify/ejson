@@ -37,9 +37,13 @@ $(GEM): rubygem/$(NAME)-$(VERSION).gem
 rubygem/$(NAME)-$(VERSION).gem: \
 	rubygem/lib/$(NAME)/version.rb \
 	rubygem/build/linux-amd64/ejson \
+	rubygem/LICENSE.txt \
 	rubygem/build/darwin-amd64/ejson \
 	rubygem/man
 	cd rubygem && gem build ejson.gemspec
+
+rubygem/LICENSE.txt: LICENSE.txt
+	cp "$<" "$@"
 
 rubygem/man: man
 	cp -a build/man $@
