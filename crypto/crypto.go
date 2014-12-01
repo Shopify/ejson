@@ -22,8 +22,8 @@ import (
 // Keypair models a Curve25519 keypair. To generate a new Keypair, declare an
 // empty one and call Generate() on it.
 type Keypair struct {
-	Public  *[32]byte
-	Private *[32]byte
+	Public  [32]byte
+	Private [32]byte
 }
 
 // Encrypter is generated from a keypair (typically a newly-generated ephemeral
@@ -33,8 +33,8 @@ type Keypair struct {
 // Encrypter() on a Keypair instance.
 type Encrypter struct {
 	Keypair    *Keypair
-	PeerPublic *[32]byte
-	SharedKey  *[32]byte
+	PeerPublic [32]byte
+	SharedKey  [32]byte
 }
 
 // Decrypter is generated from a keypair (a fixed keypair, generally, whose
@@ -59,24 +59,30 @@ func (k *Keypair) Generate() (err error) {
 		return err
 	}
 	// This will hang if insufficient entropy is availalable.
-	k.Public, k.Private, err = box.GenerateKey(rand)
+	var pub, priv *[32]byte
+	pub, priv, err = box.GenerateKey(rand)
+	if err != nil {
+		return
+	}
+	k.Public = *pub
+	k.Private = *priv
 	_ = rand.Close()
 	return
 }
 
 // PublicString returns the public key in the canonical hex-encoded printable form.
 func (k *Keypair) PublicString() string {
-	return fmt.Sprintf("%x", *k.Public)
+	return fmt.Sprintf("%x", k.Public)
 }
 
 // PrivateString returns the private key in the canonical hex-encoded printable form.
 func (k *Keypair) PrivateString() string {
-	return fmt.Sprintf("%x", *k.Private)
+	return fmt.Sprintf("%x", k.Private)
 }
 
 // Encrypter returns an Encrypter instance, given a private key, to encrypt
 // messages to the paired, unknown, private key.
-func (k *Keypair) Encrypter(peerPublic *[32]byte) *Encrypter {
+func (k *Keypair) Encrypter(peerPublic [32]byte) *Encrypter {
 	return NewEncrypter(k, peerPublic)
 }
 
@@ -88,13 +94,13 @@ func (k *Keypair) Decrypter() *Decrypter {
 
 // NewEncrypter instantiates an Encrypter after pre-computing the shared key for
 // the owned keypair and the given decrypter public key.
-func NewEncrypter(kp *Keypair, peerPublic *[32]byte) *Encrypter {
+func NewEncrypter(kp *Keypair, peerPublic [32]byte) *Encrypter {
 	var shared [32]byte
-	box.Precompute(&shared, peerPublic, kp.Private)
+	box.Precompute(&shared, &peerPublic, &kp.Private)
 	return &Encrypter{
 		Keypair:    kp,
 		PeerPublic: peerPublic,
-		SharedKey:  &shared,
+		SharedKey:  shared,
 	}
 }
 
@@ -104,7 +110,7 @@ func (e *Encrypter) encrypt(message []byte) (*boxedMessage, error) {
 		return nil, err
 	}
 
-	out := box.SealAfterPrecomputation(nil, []byte(message), nonce, e.SharedKey)
+	out := box.SealAfterPrecomputation(nil, []byte(message), &nonce, &e.SharedKey)
 
 	return &boxedMessage{
 		SchemaVersion:   1,
@@ -143,21 +149,21 @@ func (d *Decrypter) Decrypt(message []byte) ([]byte, error) {
 }
 
 func (d *Decrypter) decrypt(bm *boxedMessage) ([]byte, error) {
-	plaintext, ok := box.Open(nil, bm.Box, bm.Nonce, bm.EncrypterPublic, d.Keypair.Private)
+	plaintext, ok := box.Open(nil, bm.Box, &bm.Nonce, &bm.EncrypterPublic, &d.Keypair.Private)
 	if !ok {
 		return nil, ErrDecryptionFailed
 	}
 	return plaintext, nil
 }
 
-func genNonce() (*[24]byte, error) {
-	var nonce [24]byte
-	n, err := rand.Read(nonce[0:24]) // /dev/urandom
+func genNonce() (nonce [24]byte, err error) {
+	var n int
+	n, err = rand.Read(nonce[0:24]) // /dev/urandom
 	if err != nil {
-		return nil, err
+		return
 	}
 	if n != 24 {
-		return nil, fmt.Errorf("not enough bytes returned from rand.Reader")
+		err = fmt.Errorf("not enough bytes returned from rand.Reader")
 	}
-	return &nonce, nil
+	return
 }

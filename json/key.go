@@ -22,31 +22,41 @@ var ErrPublicKeyInvalid = errors.New("public key has invalid format")
 
 // ExtractPublicKey finds the _public_key value in an EJSON document and
 // parses it into a key usable with the crypto library.
-func ExtractPublicKey(data []byte) (*[32]byte, error) {
-	var obj map[string]interface{}
-	err := json.Unmarshal(data, &obj)
+func ExtractPublicKey(data []byte) (key [32]byte, err error) {
+	var (
+		obj map[string]interface{}
+		ks  string
+		ok  bool
+		bs  []byte
+	)
+	err = json.Unmarshal(data, &obj)
 	if err != nil {
-		return nil, err
+		return
 	}
 	k, ok := obj[PublicKeyField]
 	if !ok {
-		return nil, ErrPublicKeyMissing
+		goto missing
 	}
-	ks, ok := k.(string)
+	ks, ok = k.(string)
 	if !ok {
-		return nil, ErrPublicKeyInvalid
+		goto invalid
 	}
 	if len(ks) != 64 {
-		return nil, ErrPublicKeyInvalid
+		goto invalid
 	}
-	bs, err := hex.DecodeString(ks)
+	bs, err = hex.DecodeString(ks)
 	if err != nil {
-		return nil, ErrPublicKeyInvalid
+		goto invalid
 	}
 	if len(bs) != 32 {
-		return nil, ErrPublicKeyInvalid
+		goto invalid
 	}
-	var key [32]byte
 	copy(key[:], bs)
-	return &key, nil
+	return
+missing:
+	err = ErrPublicKeyMissing
+	return
+invalid:
+	err = ErrPublicKeyInvalid
+	return
 }

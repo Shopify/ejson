@@ -23,8 +23,8 @@ var messageParser = regexp.MustCompile("\\AEJ\\[(\\d):([A-z0-9+=/]{44}):([A-z0-9
 //   "]"
 type boxedMessage struct {
 	SchemaVersion   int
-	EncrypterPublic *[32]byte
-	Nonce           *[24]byte
+	EncrypterPublic [32]byte
+	Nonce           [24]byte
 	Box             []byte
 }
 
@@ -80,7 +80,7 @@ func (b *boxedMessage) Load(from []byte) error {
 	}
 	var public [32]byte
 	copy(public[:], pubBytes[0:32])
-	b.EncrypterPublic = &public
+	b.EncrypterPublic = public
 
 	nnc, err := base64.StdEncoding.DecodeString(snonce)
 	if err != nil {
@@ -92,7 +92,7 @@ func (b *boxedMessage) Load(from []byte) error {
 	}
 	var nonce [24]byte
 	copy(nonce[:], nonceBytes[0:24])
-	b.Nonce = &nonce
+	b.Nonce = nonce
 
 	box, err := base64.StdEncoding.DecodeString(sbox)
 	if err != nil {

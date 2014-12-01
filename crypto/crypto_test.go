@@ -31,7 +31,7 @@ func TestNonceGeneration(t *testing.T) {
 		Convey("should be unique", func() {
 			n1, _ := genNonce()
 			n2, _ := genNonce()
-			So(*n1, ShouldNotResemble, *n2)
+			So(n1, ShouldNotResemble, n2)
 		})
 		Convey("should complete successfully", func() {
 			n, err := genNonce()
@@ -63,7 +63,7 @@ func TestRoundtrip(t *testing.T) {
 	})
 }
 
-func ExampleEncrypt(peerPublic *[32]byte) {
+func ExampleEncrypt(peerPublic [32]byte) {
 	var kp Keypair
 	if err := kp.Generate(); err != nil {
 		panic(err)
@@ -74,7 +74,7 @@ func ExampleEncrypt(peerPublic *[32]byte) {
 	fmt.Println(boxed, err)
 }
 
-func ExampleDecrypt(myPublic, myPrivate *[32]byte, encrypted []byte) {
+func ExampleDecrypt(myPublic, myPrivate [32]byte, encrypted []byte) {
 	kp := Keypair{
 		Public:  myPublic,
 		Private: myPrivate,

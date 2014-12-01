@@ -14,8 +14,8 @@ func TestBoxedMessageRoundtripping(t *testing.T) {
 		Convey("Dump", func() {
 			bm := boxedMessage{
 				SchemaVersion:   1,
-				EncrypterPublic: &pk,
-				Nonce:           &nonce,
+				EncrypterPublic: pk,
+				Nonce:           nonce,
 				Box:             []byte{3, 3, 3},
 			}
 			So(string(bm.Dump()), ShouldEqual, wire)
@@ -24,8 +24,8 @@ func TestBoxedMessageRoundtripping(t *testing.T) {
 			bm := boxedMessage{}
 			err := bm.Load([]byte(wire))
 			So(err, ShouldBeNil)
-			So(*bm.EncrypterPublic, ShouldResemble, pk)
-			So(*bm.Nonce, ShouldResemble, nonce)
+			So(bm.EncrypterPublic, ShouldResemble, pk)
+			So(bm.Nonce, ShouldResemble, nonce)
 			So(bm.Box, ShouldResemble, []byte{3, 3, 3})
 		})
 

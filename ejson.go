@@ -113,25 +113,26 @@ func DecryptFile(filePath, keydir string) (string, error) {
 	return string(newdata), nil
 }
 
-func findPrivateKey(pubkey *[32]byte, keydir string) (*[32]byte, error) {
-	keyFile := fmt.Sprintf("%s/%x", keydir, *pubkey)
+func findPrivateKey(pubkey [32]byte, keydir string) (privkey [32]byte, err error) {
+	keyFile := fmt.Sprintf("%s/%x", keydir, pubkey)
 	fileContents, err := readFile(keyFile)
 	if err != nil {
-		return nil, fmt.Errorf("couldn't read key file at %s, indicated by _public_key field in ejson file (%s)", keyFile, err.Error())
+		err = fmt.Errorf("couldn't read key file at %s, indicated by _public_key field in ejson file (%s)", keyFile, err.Error())
+		return
 	}
 
 	bs, err := hex.DecodeString(strings.TrimSpace(string(fileContents)))
 	if err != nil {
-		return nil, err
+		return
 	}
 
 	if len(bs) != 32 {
-		return nil, fmt.Errorf("invalid private key retrieved from keydir")
+		err = fmt.Errorf("invalid private key retrieved from keydir")
+		return
 	}
 
-	var privkey [32]byte
 	copy(privkey[:], bs)
-	return &privkey, nil
+	return
 }
 
 // for mocking in tests

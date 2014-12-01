@@ -13,7 +13,7 @@ func TestKeyExtraction(t *testing.T) {
 			expected := [32]byte{109, 121, 183, 229, 0, 115, 229, 230, 106, 69, 129, 237, 8, 191, 29, 154, 3, 128, 108, 196, 100, 140, 255, 235, 109, 247, 27, 87, 117, 229, 235, 8}
 			key, err := ExtractPublicKey([]byte(in))
 			So(err, ShouldBeNil)
-			So(*key, ShouldResemble, expected)
+			So(key, ShouldResemble, expected)
 		})
 		Convey("fails", func() {
 			Convey("if key is too short", func() {
