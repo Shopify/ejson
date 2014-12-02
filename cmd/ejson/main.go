@@ -57,8 +57,14 @@ func main() {
 			Name:      "decrypt",
 			ShortName: "d",
 			Usage:     "decrypt an EJSON file",
+			Flags: []cli.Flag{
+				cli.StringFlag{
+					Name:  "o",
+					Usage: "print output to the provided file, rather than stdout",
+				},
+			},
 			Action: func(c *cli.Context) {
-				if err := decryptAction(c.Args(), c.GlobalString("keydir")); err != nil {
+				if err := decryptAction(c.Args(), c.GlobalString("keydir"), c.String("o")); err != nil {
 					fmt.Println("Decryption failed:", err)
 					os.Exit(1)
 				}

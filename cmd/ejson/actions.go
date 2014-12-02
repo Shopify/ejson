@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"io/ioutil"
+	"os"
 
 	"github.com/Shopify/ejson"
 )
@@ -21,7 +22,7 @@ func encryptAction(args []string) error {
 	return nil
 }
 
-func decryptAction(args []string, keydir string) error {
+func decryptAction(args []string, keydir, outFile string) error {
 	if len(args) != 1 {
 		return fmt.Errorf("exactly one file path must be given")
 	}
@@ -30,7 +31,15 @@ func decryptAction(args []string, keydir string) error {
 		return err
 	}
 
-	fmt.Println(decrypted)
+	target := os.Stdout
+	if outFile != "" {
+		target, err = os.Open(outFile)
+		if err != nil {
+			return err
+		}
+		defer func() { _ = target.Close() }()
+	}
+	fmt.Fprintln(target, decrypted)
 	return nil
 }
 

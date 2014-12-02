@@ -1,16 +1,21 @@
-ejson-decrypt(1) -- Decrypt an ejson file to stdout
-===================================================
+ejson-decrypt(1) -- Decrypt an ejson file
+=========================================
 
 ## SYNOPSIS
 
-`ejson decrypt` FILE
+`ejson decrypt` [-o `<output file>`] FILE
 
 ## DESCRIPTION
 
 Decrypt the given file; that is, decrypt all the encrypted keys within it,
-printing the full decrypted file to stdout. The key mentioned in the ejson(5)
-file must be present in the keydir. See ejson(1) for instructions on changing
-the keydir.
+printing the full decrypted file. The key mentioned in the ejson(5) file must
+be present in the keydir. See ejson(1) for instructions on changing the keydir.
+
+## OPTIONS
+
+  * `--out` FILE, `-o` FILE:
+    If given, write the decrypted file to FILE rather than stdout.
+
 
 ## SEE ALSO
 

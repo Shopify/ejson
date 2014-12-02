@@ -14,10 +14,10 @@ decrypting system(s).
 
 ## OPTIONS
 
-  * `--write`:
+  * `--write`, `-w`:
     If specified, the keypair will be written directly to the keydir, rather
     than simply printed to the screen. The public key will still be printed, but
-    the private key will be inserted into the keydir (alias: `-w`).
+    the private key will be inserted into the keydir.
 
 ## SEE ALSO
 
