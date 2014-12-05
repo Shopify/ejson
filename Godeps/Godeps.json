@@ -1,0 +1,48 @@
+{
+	"ImportPath": "github.com/Shopify/ejson",
+	"GoVersion": "go1.3.1",
+	"Packages": [
+		"./..."
+	],
+	"Deps": [
+		{
+			"ImportPath": "github.com/codegangsta/cli",
+			"Comment": "1.2.0-38-g9908e96",
+			"Rev": "9908e96513e5a94de37004098a3974a567f18111"
+		},
+		{
+			"ImportPath": "github.com/dustin/gojson",
+			"Rev": "057ac0edc14e44d03df3bb03449e666ff50884c1"
+		},
+		{
+			"ImportPath": "github.com/smartystreets/goconvey/convey",
+			"Comment": "1.5.0-300-g90f2eae",
+			"Rev": "90f2eae17a8bdcbe3f6f654fc76af7f39e97d7b9"
+		},
+		{
+			"ImportPath": "golang.org/x/crypto/curve25519",
+			"Comment": "null-236",
+			"Rev": "69e2a90ed92d03812364aeb947b7068dc42e561e"
+		},
+		{
+			"ImportPath": "golang.org/x/crypto/nacl/box",
+			"Comment": "null-236",
+			"Rev": "69e2a90ed92d03812364aeb947b7068dc42e561e"
+		},
+		{
+			"ImportPath": "golang.org/x/crypto/nacl/secretbox",
+			"Comment": "null-236",
+			"Rev": "69e2a90ed92d03812364aeb947b7068dc42e561e"
+		},
+		{
+			"ImportPath": "golang.org/x/crypto/poly1305",
+			"Comment": "null-236",
+			"Rev": "69e2a90ed92d03812364aeb947b7068dc42e561e"
+		},
+		{
+			"ImportPath": "golang.org/x/crypto/salsa20/salsa",
+			"Comment": "null-236",
+			"Rev": "69e2a90ed92d03812364aeb947b7068dc42e561e"
+		}
+	]
+}

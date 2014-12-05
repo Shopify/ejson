@@ -1,4 +1,0 @@
-#!/usr/bin/env ruby
-
-require 'ejson/cli'
-EJSON::CLI.start
