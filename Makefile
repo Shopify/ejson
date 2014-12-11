@@ -60,6 +60,7 @@ cmd/$(NAME)/version.go: VERSION
 	echo 'package main\n\nconst VERSION string = "$(VERSION)"' > $@
 
 rubygem/lib/$(NAME)/version.rb: VERSION
+	mkdir -p $(@D)
 	echo 'module $(RUBY_MODULE)\n  VERSION = "$(VERSION)"\nend' > $@
 
 $(DEB): build/bin/linux-amd64 man
