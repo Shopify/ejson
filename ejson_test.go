@@ -10,12 +10,14 @@ import (
 )
 
 func TestGenerateKeypair(t *testing.T) {
-	Convey("GenerateKeypair returns two strings that look like keys", t, func() {
+	Convey("GenerateKeypair", t, func() {
 		pub, priv, err := GenerateKeypair()
-		So(err, ShouldBeNil)
-		So(pub, ShouldNotEqual, priv)
-		So(pub, ShouldNotContainSubstring, "00000")
-		So(priv, ShouldNotContainSubstring, "00000")
+		Convey("should return two strings that look key-like", func() {
+			So(err, ShouldBeNil)
+			So(pub, ShouldNotEqual, priv)
+			So(pub, ShouldNotContainSubstring, "00000")
+			So(priv, ShouldNotContainSubstring, "00000")
+		})
 	})
 }
 

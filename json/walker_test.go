@@ -11,7 +11,7 @@ func TestWalker(t *testing.T) {
 		return []byte{'E'}, nil
 	}
 
-	Convey("Walker passes the tests", t, func() {
+	Convey("Walker passes the provided test-cases", t, func() {
 		for _, tc := range testCases {
 			walker := Walker{Action: action}
 			act, err := walker.Walk([]byte(tc.in))
