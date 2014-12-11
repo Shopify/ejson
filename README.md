@@ -26,6 +26,18 @@ The main benefits provided by `ejson` are:
 
 See [the manpages](https://shopify.github.io/ejson) for more technical documentation.
 
+## Installation
+
+If you're on Debian/Ubuntu, there's a Makefile target to build a `.deb`, but no
+official builds yet. Stay tuned or build it yourself with `make deb`.
+
+On development machines (64-bit linux or OS X), the recommended installation
+method is via rubygems:
+
+```
+gem install ejson --pre
+```
+
 ## Workflow
 
 ### 1: Create the Keydir
