@@ -20,7 +20,7 @@ workflow example.
 
   * `--keydir`=<path>:
     Path to directory containing private keys. Defaults to `/opt/ejson/keys`.
-    Setting `EJSON_KEYSDIR` will also set this value, with lower precedence.
+    Setting `EJSON_KEYDIR` will also set this value, with lower precedence.
 
 ## COMMANDS
 
