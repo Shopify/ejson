@@ -7,3 +7,5 @@
 /rubygem/man/
 /rubygem/LICENSE.txt
 /rubygem/lib/ejson/version.rb
+.bundle
+vendor/
