@@ -85,7 +85,7 @@ $(DEB): build/bin/linux-amd64 man
 clean:
 	rm -rf build pkg rubygem/{LICENSE.txt,lib/ejson/version.rb,build,*.gem}
 
-dev_bootstrap: versions
+dev_bootstrap:
 	go get ./...
 	go get github.com/mitchellh/gox
 	gox -build-toolchain -osarch="linux/amd64" -osarch="darwin/amd64"
