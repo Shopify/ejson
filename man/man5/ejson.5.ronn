@@ -41,7 +41,7 @@ encrypted.
 }
 ```
 
-Also note that this underscore "unencryptable" attribute does not inherit. For
+Also note that this underscore "unencryptable" attribute is not heritable. For
 example, the password in this excerpt `will` be encrypted.
 
 ```
