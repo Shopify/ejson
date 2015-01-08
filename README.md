@@ -34,7 +34,7 @@ On development machines (64-bit linux or OS X), the recommended installation
 method is via rubygems:
 
 ```
-gem install ejson --pre
+gem install ejson
 ```
 
 ## Workflow
