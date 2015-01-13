@@ -137,3 +137,6 @@ of:
 6. Underscores do not propagate downward. For example, in `{"_a": {"b": "c"}}`,
    `"c"` will be encrypted.
 
+## See also
+
+* If you use Capistrano for deployment you can use [capistrano-ejson](https://github.com/Shopify/capistrano-ejson) to automatically decrypt the secrets on deploy.
