@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"os"
+	"runtime"
 	"syscall"
 
 	"github.com/codegangsta/cli"
@@ -16,6 +17,8 @@ func execManpage(sec, page string) {
 }
 
 func main() {
+	// Encryption is expensive. We'd rather burn cycles on many cores than wait.
+	runtime.GOMAXPROCS(runtime.NumCPU())
 
 	// Rather than using the built-in help printer, display the bundled manpages.
 	cli.HelpPrinter = func(templ string, data interface{}) {
