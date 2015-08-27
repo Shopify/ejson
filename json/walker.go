@@ -44,10 +44,10 @@ func (ew *Walker) Walk(data []byte) ([]byte, error) {
 		inLiteral    bool
 		literalStart int
 		isComment    bool
-		out          []byte
 		scanner      json.Scanner
 	)
 	scanner.Reset()
+	pline := newPipeline()
 	for i, c := range data {
 		switch v := scanner.Step(&scanner, int(c)); v {
 		case json.ScanContinue:
@@ -61,13 +61,14 @@ func (ew *Walker) Walk(data []byte) ([]byte, error) {
 			// underscore, then append it verbatim to the output buffer.
 			inLiteral = false
 			isComment = data[literalStart+1] == '_'
-			out = append(out, data[literalStart:i]...)
+			pline.appendBytes(data[literalStart:i])
 		case json.ScanError:
 			// Some error happened; just bail.
+			pline.flush()
 			return nil, fmt.Errorf("invalid json")
 		case json.ScanEnd:
 			// We successfully hit the end of input.
-			return out, nil
+			return pline.flush()
 		default:
 			if inLiteral {
 				inLiteral = false
@@ -75,31 +76,31 @@ func (ew *Walker) Walk(data []byte) ([]byte, error) {
 				// potentially encryptable. If it was a string, and the most recent Key
 				// encountered didn't begin with a '_', we are to encrypt it. In any
 				// other case, we append it verbatim to the output buffer.
-				actioned, err := ew.runActionIfEncryptable(data[literalStart:i], isComment)
-				if err != nil {
-					return nil, err
+				if isComment || data[literalStart] != '"' {
+					pline.appendBytes(data[literalStart:i])
+				} else {
+					res := make(chan promiseResult)
+					go func(subData []byte) {
+						actioned, err := ew.runAction(subData)
+						res <- promiseResult{actioned, err}
+						close(res)
+					}(data[literalStart:i])
+					pline.appendPromise(res)
 				}
-				out = append(out, actioned...)
 			}
 		}
 		if !inLiteral {
 			// If we're in a literal, we save up bytes because we may have to encrypt
 			// them. Outside of a literal, we simply append each byte as we read it.
-			out = append(out, c)
+			pline.appendByte(c)
 		}
 	}
 	if scanner.EOF() == json.ScanError {
 		// Unexpected EOF => malformed JSON
+		pline.flush()
 		return nil, fmt.Errorf("invalid json")
 	}
-	return out, nil
-}
-
-func (ew *Walker) runActionIfEncryptable(data []byte, isComment bool) ([]byte, error) {
-	if !isComment && data[0] == '"' {
-		return ew.runAction(data)
-	}
-	return data, nil
+	return pline.flush()
 }
 
 func (ew *Walker) runAction(data []byte) ([]byte, error) {
