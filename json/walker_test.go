@@ -28,6 +28,8 @@ type testCase struct {
 // "E" means encrypted.
 var testCases = []testCase{
 	{`{"a": "b"}`, `{"a": "E"}`},                     // encryption
+	{`{"a" : "b"}`, `{"a" : "E"}`},                   // weird spacing
+	{` {  "a"  :"b" } `, ` {  "a"  :"E"}`},           // we could but don't preserve trailing spaces
 	{`{"_a": "b"}`, `{"_a": "b"}`},                   // commenting
 	{`{"a": "b", "c": "d"}`, `{"a": "E", "c": "E"}`}, // order-dependence
 	{`{"a": 1}`, `{"a": 1}`},                         // numbers

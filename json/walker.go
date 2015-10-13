@@ -50,7 +50,7 @@ func (ew *Walker) Walk(data []byte) ([]byte, error) {
 	pline := newPipeline()
 	for i, c := range data {
 		switch v := scanner.Step(&scanner, int(c)); v {
-		case json.ScanContinue:
+		case json.ScanContinue, json.ScanSkipSpace:
 			// Uninteresting byte. Just advance to next.
 		case json.ScanBeginLiteral:
 			inLiteral = true
