@@ -5,7 +5,7 @@ dir = case platform
       when /^Darwin/    ; "darwin-amd64"
       when /^Linux.*64/ ; "linux-amd64"
       else
-        puts "Ejson is not supported on your platform."
+        abort "Ejson is not supported on your platform."
       end
 
 bindir = File.expand_path("../../build/#{dir}", __FILE__)
