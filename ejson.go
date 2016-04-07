@@ -68,31 +68,26 @@ func EncryptFileInPlace(filePath string) (int, error) {
 	return len(newdata), nil
 }
 
-// DecryptFile takes a path to an encrypted EJSON file and decrypts it to
-// STDOUT. If any keys in the file are encryptable but currently-unencrypted,
-// ejson will print an error and exit non-zero, as this condition probably
-// indicates that a plaintext secret was committed to source control, and
-// requires manual intervention to rotate.
-//
-// The public key used to encrypt the values is embedded in the referenced
-// document, and the matching private key is searched for in keydir. There must
-// exist a file in keydir whose name is the public key from the EJSON document,
-// and whose contents are the corresponding private key. See README.md for more
-// details on this.
-func DecryptFile(filePath, keydir string) (string, error) {
+// DecryptFile takes a path to an encrypted EJSON file and returns the data
+// decrypted. The public key used to encrypt the values is embedded in the
+// referenced document, and the matching private key is searched for in keydir.
+// There must exist a file in keydir whose name is the public key from the
+// EJSON document, and whose contents are the corresponding private key. See
+// README.md for more details on this.
+func DecryptFile(filePath, keydir string) ([]byte, error) {
 	data, err := readFile(filePath)
 	if err != nil {
-		return "", err
+		return nil, err
 	}
 
 	pubkey, err := json.ExtractPublicKey(data)
 	if err != nil {
-		return "", err
+		return nil, err
 	}
 
 	privkey, err := findPrivateKey(pubkey, keydir)
 	if err != nil {
-		return "", err
+		return nil, err
 	}
 
 	myKP := crypto.Keypair{
@@ -107,10 +102,10 @@ func DecryptFile(filePath, keydir string) (string, error) {
 
 	newdata, err := walker.Walk(data)
 	if err != nil {
-		return "", err
+		return nil, err
 	}
 
-	return string(newdata), nil
+	return newdata, nil
 }
 
 func findPrivateKey(pubkey [32]byte, keydir string) (privkey [32]byte, err error) {

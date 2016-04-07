@@ -39,8 +39,9 @@ func decryptAction(args []string, keydir, outFile string) error {
 		}
 		defer func() { _ = target.Close() }()
 	}
-	fmt.Fprintln(target, decrypted)
-	return nil
+
+	_, err = target.Write(decrypted)
+	return err
 }
 
 func keygenAction(args []string, keydir string, wFlag bool) error {
