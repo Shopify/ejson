@@ -89,10 +89,6 @@ func TestDecryptFile(t *testing.T) {
 			})
 		})
 
-		Convey("called with an JSON file containing unencrypted-but-encryptable secrets", func() {
-			Convey("should fail with a scary message", nil)
-		})
-
 		Convey("called with an invalid JSON file", func() {
 			readFile = func(p string) ([]byte, error) {
 				return []byte(`{"a": "b"]`), nil
@@ -143,7 +139,7 @@ func TestDecryptFile(t *testing.T) {
 			readFile = ioutil.ReadFile
 			Convey("should fail and describe that the key could not be found", func() {
 				So(err, ShouldBeNil)
-				So(out, ShouldEqual, `{"_public_key": "8d8647e2eeb6d2e31228e6df7da3df921ec3b799c3f66a171cd37a1ed3004e7d", "a": "b"}`)
+				So(string(out), ShouldEqual, `{"_public_key": "8d8647e2eeb6d2e31228e6df7da3df921ec3b799c3f66a171cd37a1ed3004e7d", "a": "b"}`)
 			})
 		})
 
