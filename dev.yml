@@ -1,0 +1,19 @@
+name: ejson
+
+up:
+  - homebrew:
+      - gnu-tar
+  - ruby:
+      package: shopify/shopify/shopify-ruby
+      version: 2.2.3p172-shopify
+  - go: 1.6.2
+  - bundler
+
+commands:
+  build:
+    run: make
+    desc: 'build release artifacts'
+  test:
+    run: godep go test ./...
+    desc: 'run unit tests'
+
