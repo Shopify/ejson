@@ -10,5 +10,6 @@
 /npm/build/
 /npm/man/
 /npm/LICENSE.txt
+/npm/VERSION
 .bundle
 vendor/
