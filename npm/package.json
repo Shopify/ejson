@@ -9,7 +9,6 @@
     "ejson": "bin/ejson"
   },
   "scripts": {
-    "prepublish": "cp -a ../build . && cp -a ../man . && cp ../LICENSE.txt . && npm version `cat ../VERSION`",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "author": "darep",
