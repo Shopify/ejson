@@ -1,0 +1,24 @@
+#!/usr/bin/env node
+
+var execSync = require('child_process').execSync;
+var path = require('path');
+
+var platform, dir, bindir;
+
+platform = execSync('uname -sm');
+
+if (/^Darwin/.test(platform)) {
+  dir = 'darwin-amd64';
+} else if (/^Linux.*64/.test(platform)) {
+  dir = 'linux-amd64';
+} else {
+  throw new Error('Ejson is not supported on your platform.');
+}
+
+bindir = path.resolve(__dirname, '../build/' + dir);
+mandir = path.resolve(__dirname, '../man');
+
+process.env.PATH = bindir + path.delimiter + process.env.PATH;
+process.env.MANPATH = mandir + path.delimiter + (process.env.MANPATH || '');
+
+execSync('ejson ' + process.argv.slice(2).join(' '), { stdio: [0, 1, 2] });
