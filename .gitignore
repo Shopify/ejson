@@ -7,5 +7,8 @@
 /rubygem/man/
 /rubygem/LICENSE.txt
 /rubygem/lib/ejson/version.rb
+/npm/build/
+/npm/man/
+/npm/LICENSE.txt
 .bundle
 vendor/
