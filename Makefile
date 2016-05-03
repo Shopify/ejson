@@ -109,7 +109,7 @@ npm/VERSION: VERSION
 	cd npm && npm version `cat ./VERSION`
 
 clean:
-	rm -rf build pkg rubygem/{LICENSE.txt,lib/ejson/version.rb,build,*.gem}
+	rm -rf build pkg rubygem/{LICENSE.txt,lib/ejson/version.rb,build,*.gem} npm/{VERSION,LICENSE.txt,build,*.gem}
 
 dev_bootstrap:
 	go get ./...
