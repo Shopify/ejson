@@ -12,7 +12,7 @@ GODEP_PATH=$(shell pwd)/Godeps/_workspace
 
 BUNDLE_EXEC=bundle exec
 
-.PHONY: default all binaries gem man clean dev_bootstrap
+.PHONY: default all binaries gem man npm clean dev_bootstrap
 
 default: all
 all: gem deb
@@ -81,6 +81,32 @@ $(DEB): build/bin/linux-amd64 man
 		--url="https://github.com/Shopify/ejson" \
 		./build/man/=/usr/share/man/ \
 		./$<=/usr/bin/$(NAME)
+
+npm: \
+	npm/build/linux-amd64/ejson \
+	npm/build/darwin-amd64/ejson \
+	npm/man \
+	npm/LICENSE.txt \
+	npm/VERSION
+	echo 'ready for "npm publish"'
+
+npm/build/linux-amd64/ejson: build/bin/linux-amd64
+	mkdir -p $(@D)
+	cp -a "$<" "$@"
+
+npm/build/darwin-amd64/ejson: build/bin/darwin-amd64
+	mkdir -p $(@D)
+	cp -a "$<" "$@"
+
+npm/LICENSE.txt: LICENSE.txt
+	cp "$<" "$@"
+
+npm/man: man
+	cp -a build/man $@
+
+npm/VERSION: VERSION
+	cp VERSION $@
+	cd npm && npm version `cat ./VERSION`
 
 clean:
 	rm -rf build pkg rubygem/{LICENSE.txt,lib/ejson/version.rb,build,*.gem}
