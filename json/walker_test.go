@@ -29,7 +29,8 @@ type testCase struct {
 var testCases = []testCase{
 	{`{"a": "b"}`, `{"a": "E"}`},                     // encryption
 	{`{"a" : "b"}`, `{"a" : "E"}`},                   // weird spacing
-	{` {  "a"  :"b" } `, ` {  "a"  :"E"}`},           // we could but don't preserve trailing spaces
+	{` {  "a"  :"b" } `, ` {  "a"  :"E" } `},         // trailing spaces
+	{`{"a": "b"}` + "\n", `{"a": "E"}` + "\n"},       // trailing newline
 	{`{"_a": "b"}`, `{"_a": "b"}`},                   // commenting
 	{`{"a": "b", "c": "d"}`, `{"a": "E", "c": "E"}`}, // order-dependence
 	{`{"a": 1}`, `{"a": 1}`},                         // numbers

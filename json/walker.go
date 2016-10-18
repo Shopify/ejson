@@ -12,6 +12,7 @@ package json
 
 import (
 	"fmt"
+	"bytes"
 
 	"github.com/dustin/gojson"
 )
@@ -68,6 +69,7 @@ func (ew *Walker) Walk(data []byte) ([]byte, error) {
 			return nil, fmt.Errorf("invalid json")
 		case json.ScanEnd:
 			// We successfully hit the end of input.
+			pline.appendByte(c)
 			return pline.flush()
 		default:
 			if inLiteral {
@@ -104,7 +106,8 @@ func (ew *Walker) Walk(data []byte) ([]byte, error) {
 }
 
 func (ew *Walker) runAction(data []byte) ([]byte, error) {
-	unquoted, ok := json.UnquoteBytes(data)
+	trimmed := bytes.TrimSpace(data)
+	unquoted, ok := json.UnquoteBytes(trimmed)
 	if !ok {
 		return nil, fmt.Errorf("invalid json")
 	}
@@ -112,7 +115,11 @@ func (ew *Walker) runAction(data []byte) ([]byte, error) {
 	if err != nil {
 		return nil, err
 	}
-	return quoteBytes(done)
+	quoted, err := quoteBytes(done)
+	if err != nil {
+		return nil, err
+	}
+	return append(quoted, data[len(trimmed):]...), nil
 }
 
 // probably a better way to do this, but...
