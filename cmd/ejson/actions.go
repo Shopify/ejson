@@ -52,7 +52,7 @@ func keygenAction(args []string, keydir string, wFlag bool) error {
 
 	if wFlag {
 		keyFile := fmt.Sprintf("%s/%s", keydir, pub)
-		err := writeFile(keyFile, []byte(priv), 0440)
+		err := writeFile(keyFile, append([]byte(priv), '\n'), 0440)
 		if err != nil {
 			return err
 		}
