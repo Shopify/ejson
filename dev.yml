@@ -6,7 +6,7 @@ up:
   - ruby:
       package: shopify/shopify/shopify-ruby
       version: 2.2.3p172-shopify
-  - go: 1.6.2
+  - go: 1.7.1
   - bundler
 
 commands:
@@ -14,7 +14,7 @@ commands:
     run: make
     desc: 'build release artifacts'
   test:
-    run: godep go test ./...
+    run: go test ./...
     desc: 'run unit tests'
 
 packages:
