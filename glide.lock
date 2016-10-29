@@ -1,0 +1,24 @@
+hash: e4d3fb37436e63aa155a72ce2e61de7bb491371985e2071e61756282a3afe5da
+updated: 2016-10-29T10:24:06.84492759-04:00
+imports:
+- name: github.com/codegangsta/cli
+  version: 9908e96513e5a94de37004098a3974a567f18111
+- name: github.com/dustin/gojson
+  version: 057ac0edc14e44d03df3bb03449e666ff50884c1
+- name: github.com/smartystreets/goconvey
+  version: 90f2eae17a8bdcbe3f6f654fc76af7f39e97d7b9
+  subpackages:
+  - convey
+  - convey/assertions
+  - convey/assertions/oglematchers
+  - convey/gotest
+  - convey/reporting
+- name: golang.org/x/crypto
+  version: ca7e7f10cb9fd9c1a6ff7f60436c086d73714180
+  subpackages:
+  - curve25519
+  - nacl/box
+  - nacl/secretbox
+  - poly1305
+  - salsa20/salsa
+testImports: []
