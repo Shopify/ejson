@@ -4,8 +4,10 @@
 package ejson
 
 import (
+	"bytes"
 	"encoding/hex"
 	"fmt"
+	"io"
 	"io/ioutil"
 	"os"
 	"strings"
@@ -25,24 +27,19 @@ func GenerateKeypair() (pub string, priv string, err error) {
 	return kp.PublicString(), kp.PrivateString(), nil
 }
 
-// EncryptFileInPlace takes a path to a file on disk, which must be a valid EJSON file
-// (see README.md for more on what constitutes a valid EJSON file). Any
-// encryptable-but-unencrypted fields in the file will be encrypted using the
-// public key embdded in the file, and the resulting text will be written over
-// the file present on disk.
-func EncryptFileInPlace(filePath string) (int, error) {
-	data, err := readFile(filePath)
-	if err != nil {
-		return -1, err
-	}
-
-	fileMode, err := getMode(filePath)
+// Encrypt reads all contents from 'in', extracts the pubkey
+// and performs the requested encryption operation, writing
+// the resulting data to 'out'.
+// Returns the number of bytes written and any error that might have
+// occurred.
+func Encrypt(in io.Reader, out io.Writer) (int, error) {
+	data, err := ioutil.ReadAll(in)
 	if err != nil {
 		return -1, err
 	}
 
 	var myKP crypto.Keypair
-	if err := myKP.Generate(); err != nil {
+	if err = myKP.Generate(); err != nil {
 		return -1, err
 	}
 
@@ -61,33 +58,62 @@ func EncryptFileInPlace(filePath string) (int, error) {
 		return -1, err
 	}
 
-	if err := writeFile(filePath, newdata, fileMode); err != nil {
+	return out.Write(newdata)
+}
+
+// EncryptFileInPlace takes a path to a file on disk, which must be a valid EJSON file
+// (see README.md for more on what constitutes a valid EJSON file). Any
+// encryptable-but-unencrypted fields in the file will be encrypted using the
+// public key embdded in the file, and the resulting text will be written over
+// the file present on disk.
+func EncryptFileInPlace(filePath string) (int, error) {
+	var fileMode os.FileMode
+	if stat, err := os.Stat(filePath); err == nil {
+		fileMode = stat.Mode()
+	} else {
 		return -1, err
 	}
 
-	return len(newdata), nil
+	file, err := os.Open(filePath)
+	if err != nil {
+		return -1, err
+	}
+
+	var outBuffer bytes.Buffer
+
+	written, err := Encrypt(file, &outBuffer)
+	if err != nil {
+		return -1, err
+	}
+
+	if err = file.Close(); err != nil {
+		return -1, err
+	}
+
+	if err := ioutil.WriteFile(filePath, outBuffer.Bytes(), fileMode); err != nil {
+		return -1, err
+	}
+
+	return written, nil
 }
 
-// DecryptFile takes a path to an encrypted EJSON file and returns the data
-// decrypted. The public key used to encrypt the values is embedded in the
-// referenced document, and the matching private key is searched for in keydir.
-// There must exist a file in keydir whose name is the public key from the
-// EJSON document, and whose contents are the corresponding private key. See
-// README.md for more details on this.
-func DecryptFile(filePath, keydir string) ([]byte, error) {
-	data, err := readFile(filePath)
+// Decrypt reads an ejson stream from 'in' and writes the decrypted data to 'out'.
+// The private key is expected to be under 'keydir'.
+// Returns error upon failure, or nil on success.
+func Decrypt(in io.Reader, out io.Writer, keydir string) error {
+	data, err := ioutil.ReadAll(in)
 	if err != nil {
-		return nil, err
+		return err
 	}
 
 	pubkey, err := json.ExtractPublicKey(data)
 	if err != nil {
-		return nil, err
+		return err
 	}
 
 	privkey, err := findPrivateKey(pubkey, keydir)
 	if err != nil {
-		return nil, err
+		return err
 	}
 
 	myKP := crypto.Keypair{
@@ -102,16 +128,42 @@ func DecryptFile(filePath, keydir string) ([]byte, error) {
 
 	newdata, err := walker.Walk(data)
 	if err != nil {
+		return err
+	}
+
+	_, err = out.Write(newdata)
+
+	return err
+}
+
+// DecryptFile takes a path to an encrypted EJSON file and returns the data
+// decrypted. The public key used to encrypt the values is embedded in the
+// referenced document, and the matching private key is searched for in keydir.
+// There must exist a file in keydir whose name is the public key from the
+// EJSON document, and whose contents are the corresponding private key. See
+// README.md for more details on this.
+func DecryptFile(filePath, keydir string) ([]byte, error) {
+	if _, err := os.Stat(filePath); err != nil {
 		return nil, err
 	}
 
-	return newdata, nil
+	file, err := os.Open(filePath)
+	if err != nil {
+		return nil, err
+	}
+	defer file.Close()
+
+	var outBuffer bytes.Buffer
+
+	err = Decrypt(file, &outBuffer, keydir)
+
+	return outBuffer.Bytes(), err
 }
 
 func findPrivateKey(pubkey [32]byte, keydir string) (privkey [32]byte, err error) {
 	keyFile := fmt.Sprintf("%s/%x", keydir, pubkey)
 	var fileContents []byte
-	fileContents, err = readFile(keyFile)
+	fileContents, err = ioutil.ReadFile(keyFile)
 	if err != nil {
 		err = fmt.Errorf("couldn't read key file (%s)", err.Error())
 		return
@@ -130,19 +182,3 @@ func findPrivateKey(pubkey [32]byte, keydir string) (privkey [32]byte, err error
 	copy(privkey[:], bs)
 	return
 }
-
-// for mocking in tests
-func _getMode(path string) (os.FileMode, error) {
-	fi, err := os.Stat(path)
-	if err != nil {
-		return 0, err
-	}
-	return fi.Mode(), nil
-}
-
-// for mocking in tests
-var (
-	readFile  = ioutil.ReadFile
-	writeFile = ioutil.WriteFile
-	getMode   = _getMode
-)
