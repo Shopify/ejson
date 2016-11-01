@@ -3,18 +3,23 @@ name: ejson
 up:
   - homebrew:
       - gnu-tar
+      - glide
   - ruby:
       package: shopify/shopify/shopify-ruby
       version: 2.2.3p172-shopify
-  - go: 1.6.2
+  - go: 1.7.1
   - bundler
+  - custom:
+      name: Install vendored dependencies
+      met?: test -e vendor
+      meet: glide install
 
 commands:
   build:
     run: make
     desc: 'build release artifacts'
   test:
-    run: godep go test ./...
+    run: go test
     desc: 'run unit tests'
 
 packages:
