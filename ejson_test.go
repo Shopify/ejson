@@ -3,10 +3,17 @@ package ejson
 import (
 	"io/ioutil"
 	"os"
+	"path"
 	"regexp"
 	"testing"
 
 	. "github.com/smartystreets/goconvey/convey"
+)
+
+var (
+	validPubKey   = "8d8647e2eeb6d2e31228e6df7da3df921ec3b799c3f66a171cd37a1ed3004e7d"
+	invalidPubKey = "8d8647e2eeb6d2e31228e6df7da3df921ec3b799c3f66a171cd37a1ed0000000"
+	validPrivKey  = "c5caa31a5b8cb2be0074b37c56775f533b368b81d8fd33b94181f79bd6e47f87"
 )
 
 func TestGenerateKeypair(t *testing.T) {
@@ -21,11 +28,32 @@ func TestGenerateKeypair(t *testing.T) {
 	})
 }
 
-func TestEncryptFileInPlace(t *testing.T) {
-	getMode = func(p string) (os.FileMode, error) {
-		return 0400, nil
+func setData(path string, data []byte) error {
+	tmpFile, err := os.OpenFile(path, os.O_TRUNC|os.O_WRONLY, 0600)
+	if err != nil {
+		return err
 	}
-	defer func() { getMode = _getMode }()
+	if _, err = tmpFile.Write(data); err != nil {
+		return err
+	}
+	tmpFile.Close()
+	return nil
+}
+
+func TestEncryptFileInPlace(t *testing.T) {
+	tempDir, err := ioutil.TempDir("", "ejson_keys")
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer os.RemoveAll(tempDir)
+
+	tempFile, err := ioutil.TempFile(tempDir, "ejson_test")
+	if err != nil {
+		t.Fatal(err)
+	}
+	tempFile.Close()
+	tempFileName := tempFile.Name()
+
 	Convey("EncryptFileInPlace", t, func() {
 		Convey("called with a non-existent file", func() {
 			_, err := EncryptFileInPlace("/does/not/exist")
@@ -35,11 +63,8 @@ func TestEncryptFileInPlace(t *testing.T) {
 		})
 
 		Convey("called with an invalid JSON file", func() {
-			readFile = func(p string) ([]byte, error) {
-				return []byte(`{"a": "b"]`), nil
-			}
-			_, err := EncryptFileInPlace("/doesnt/matter")
-			readFile = ioutil.ReadFile
+			setData(tempFileName, []byte(`{"a": "b"]`))
+			_, err := EncryptFileInPlace(tempFileName)
 			Convey("should fail", func() {
 				So(err, ShouldNotBeNil)
 				So(err.Error(), ShouldContainSubstring, "invalid character")
@@ -47,11 +72,8 @@ func TestEncryptFileInPlace(t *testing.T) {
 		})
 
 		Convey("called with an invalid keypair", func() {
-			readFile = func(p string) ([]byte, error) {
-				return []byte(`{"_public_key": "invalid"}`), nil
-			}
-			_, err := EncryptFileInPlace("/doesnt/matter")
-			readFile = ioutil.ReadFile
+			setData(tempFileName, []byte(`{"_public_key": "invalid"}`))
+			_, err := EncryptFileInPlace(tempFileName)
 			Convey("should fail", func() {
 				So(err, ShouldNotBeNil)
 				So(err.Error(), ShouldEqual, "public key has invalid format")
@@ -59,17 +81,11 @@ func TestEncryptFileInPlace(t *testing.T) {
 		})
 
 		Convey("called with a valid keypair", func() {
-			readFile = func(p string) ([]byte, error) {
-				return []byte(`{"_public_key": "8d8647e2eeb6d2e31228e6df7da3df921ec3b799c3f66a171cd37a1ed3004e7d", "a": "b"}`), nil
-			}
-			var output []byte
-			writeFile = func(path string, data []byte, mode os.FileMode) error {
-				output = data
-				return nil
-			}
-			_, err := EncryptFileInPlace("/doesnt/matter")
-			readFile = ioutil.ReadFile
-			writeFile = ioutil.WriteFile
+			setData(tempFileName, []byte(`{"_public_key": "`+validPubKey+`", "a": "b"}`))
+
+			_, err := EncryptFileInPlace(tempFileName)
+			output, err := ioutil.ReadFile(tempFileName)
+			So(err, ShouldBeNil)
 			Convey("should encrypt the file", func() {
 				So(err, ShouldBeNil)
 				match := regexp.MustCompile(`{"_public_key": "8d8.*", "a": "EJ.*"}`)
@@ -81,6 +97,23 @@ func TestEncryptFileInPlace(t *testing.T) {
 }
 
 func TestDecryptFile(t *testing.T) {
+	tempDir, err := ioutil.TempDir("", "ejson_keys")
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer os.RemoveAll(tempDir)
+
+	tempFile, err := ioutil.TempFile(tempDir, "ejson_test")
+	if err != nil {
+		t.Fatal(err)
+	}
+	tempFile.Close()
+	tempFileName := tempFile.Name()
+	validKeyPath := path.Join(tempDir, validPubKey)
+	if err = ioutil.WriteFile(validKeyPath, []byte(validPrivKey), 0600); err != nil {
+		t.Fatal(err)
+	}
+
 	Convey("DecryptFile", t, func() {
 		Convey("called with a non-existent file", func() {
 			_, err := DecryptFile("/does/not/exist", "/doesnt/matter")
@@ -90,11 +123,8 @@ func TestDecryptFile(t *testing.T) {
 		})
 
 		Convey("called with an invalid JSON file", func() {
-			readFile = func(p string) ([]byte, error) {
-				return []byte(`{"a": "b"]`), nil
-			}
-			_, err := DecryptFile("/doesnt/matter", "/doesnt/matter")
-			readFile = ioutil.ReadFile
+			setData(tempFileName, []byte(`{"a": "b"]`))
+			_, err := DecryptFile(tempFileName, tempDir)
 			Convey("should fail", func() {
 				So(err, ShouldNotBeNil)
 				So(err.Error(), ShouldContainSubstring, "invalid character")
@@ -102,11 +132,8 @@ func TestDecryptFile(t *testing.T) {
 		})
 
 		Convey("called with an invalid keypair", func() {
-			readFile = func(p string) ([]byte, error) {
-				return []byte(`{"_public_key": "invalid"}`), nil
-			}
-			_, err := DecryptFile("/doesnt/matter", "/doesnt/matter")
-			readFile = ioutil.ReadFile
+			setData(tempFileName, []byte(`{"_public_key": "invalid"}`))
+			_, err := DecryptFile(tempFileName, tempDir)
 			Convey("should fail", func() {
 				So(err, ShouldNotBeNil)
 				So(err.Error(), ShouldEqual, "public key has invalid format")
@@ -114,14 +141,8 @@ func TestDecryptFile(t *testing.T) {
 		})
 
 		Convey("called with a valid keypair but no corresponding entry in keydir", func() {
-			readFile = func(p string) ([]byte, error) {
-				if p == "a" {
-					return []byte(`{"_public_key": "8d8647e2eeb6d2e31228e6df7da3df921ec3b799c3f66a171cd37a1ed3004e7d", "a": "b"}`), nil
-				}
-				return ioutil.ReadFile("/does/not/exist")
-			}
-			_, err := DecryptFile("a", "b")
-			readFile = ioutil.ReadFile
+			setData(tempFileName, []byte(`{"_public_key": "`+invalidPubKey+`", "a": "b"}`))
+			_, err := DecryptFile(tempFileName, tempDir)
 			Convey("should fail and describe that the key could not be found", func() {
 				So(err, ShouldNotBeNil)
 				So(err.Error(), ShouldContainSubstring, "couldn't read key file")
@@ -129,17 +150,11 @@ func TestDecryptFile(t *testing.T) {
 		})
 
 		Convey("called with a valid keypair and a corresponding entry in keydir", func() {
-			readFile = func(p string) ([]byte, error) {
-				if p == "a" {
-					return []byte(`{"_public_key": "8d8647e2eeb6d2e31228e6df7da3df921ec3b799c3f66a171cd37a1ed3004e7d", "a": "EJ[1:KR1IxNZnTZQMP3OR1NdOpDQ1IcLD83FSuE7iVNzINDk=:XnYW1HOxMthBFMnxWULHlnY4scj5mNmX:ls1+kvwwu2ETz5C6apgWE7Q=]"}`), nil
-				}
-				return []byte("c5caa31a5b8cb2be0074b37c56775f533b368b81d8fd33b94181f79bd6e47f87"), nil
-			}
-			out, err := DecryptFile("a", "b")
-			readFile = ioutil.ReadFile
+			setData(tempFileName, []byte(`{"_public_key": "`+validPubKey+`", "a": "EJ[1:KR1IxNZnTZQMP3OR1NdOpDQ1IcLD83FSuE7iVNzINDk=:XnYW1HOxMthBFMnxWULHlnY4scj5mNmX:ls1+kvwwu2ETz5C6apgWE7Q=]"}`))
+			out, err := DecryptFile(tempFileName, tempDir)
 			Convey("should fail and describe that the key could not be found", func() {
 				So(err, ShouldBeNil)
-				So(string(out), ShouldEqual, `{"_public_key": "8d8647e2eeb6d2e31228e6df7da3df921ec3b799c3f66a171cd37a1ed3004e7d", "a": "b"}`)
+				So(string(out), ShouldEqual, `{"_public_key": "`+validPubKey+`", "a": "b"}`)
 			})
 		})
 
