@@ -9,6 +9,7 @@ import:
   subpackages:
   - convey
 - package: golang.org/x/crypto
+  version: c367d6eeb7c6158125f2f47e049f7eb7e251c09a
   subpackages:
   - curve25519
   - nacl/box
