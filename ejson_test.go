@@ -10,6 +10,12 @@ import (
 	. "github.com/smartystreets/goconvey/convey"
 )
 
+var (
+	validPubKey   = "8d8647e2eeb6d2e31228e6df7da3df921ec3b799c3f66a171cd37a1ed3004e7d"
+	invalidPubKey = "8d8647e2eeb6d2e31228e6df7da3df921ec3b799c3f66a171cd37a1ed0000000"
+	validPrivKey  = "c5caa31a5b8cb2be0074b37c56775f533b368b81d8fd33b94181f79bd6e47f87"
+)
+
 func TestGenerateKeypair(t *testing.T) {
 	Convey("GenerateKeypair", t, func() {
 		pub, priv, err := GenerateKeypair()
@@ -75,7 +81,7 @@ func TestEncryptFileInPlace(t *testing.T) {
 		})
 
 		Convey("called with a valid keypair", func() {
-			setData(tempFileName, []byte(`{"_public_key": "8d8647e2eeb6d2e31228e6df7da3df921ec3b799c3f66a171cd37a1ed3004e7d", "a": "b"}`))
+			setData(tempFileName, []byte(`{"_public_key": "`+validPubKey+`", "a": "b"}`))
 
 			_, err := EncryptFileInPlace(tempFileName)
 			output, err := ioutil.ReadFile(tempFileName)
@@ -103,8 +109,8 @@ func TestDecryptFile(t *testing.T) {
 	}
 	tempFile.Close()
 	tempFileName := tempFile.Name()
-	validKeyPath := path.Join(tempDir, "8d8647e2eeb6d2e31228e6df7da3df921ec3b799c3f66a171cd37a1ed3004e7d")
-	if err = ioutil.WriteFile(validKeyPath, []byte("c5caa31a5b8cb2be0074b37c56775f533b368b81d8fd33b94181f79bd6e47f87"), 0600); err != nil {
+	validKeyPath := path.Join(tempDir, validPubKey)
+	if err = ioutil.WriteFile(validKeyPath, []byte(validPrivKey), 0600); err != nil {
 		t.Fatal(err)
 	}
 
@@ -135,8 +141,7 @@ func TestDecryptFile(t *testing.T) {
 		})
 
 		Convey("called with a valid keypair but no corresponding entry in keydir", func() {
-			// notice the last 4 chars
-			setData(tempFileName, []byte(`{"_public_key": "8d8647e2eeb6d2e31228e6df7da3df921ec3b799c3f66a171cd37a1ed3000000", "a": "b"}`))
+			setData(tempFileName, []byte(`{"_public_key": "`+invalidPubKey+`", "a": "b"}`))
 			_, err := DecryptFile(tempFileName, tempDir)
 			Convey("should fail and describe that the key could not be found", func() {
 				So(err, ShouldNotBeNil)
@@ -145,11 +150,11 @@ func TestDecryptFile(t *testing.T) {
 		})
 
 		Convey("called with a valid keypair and a corresponding entry in keydir", func() {
-			setData(tempFileName, []byte(`{"_public_key": "8d8647e2eeb6d2e31228e6df7da3df921ec3b799c3f66a171cd37a1ed3004e7d", "a": "EJ[1:KR1IxNZnTZQMP3OR1NdOpDQ1IcLD83FSuE7iVNzINDk=:XnYW1HOxMthBFMnxWULHlnY4scj5mNmX:ls1+kvwwu2ETz5C6apgWE7Q=]"}`))
+			setData(tempFileName, []byte(`{"_public_key": "`+validPubKey+`", "a": "EJ[1:KR1IxNZnTZQMP3OR1NdOpDQ1IcLD83FSuE7iVNzINDk=:XnYW1HOxMthBFMnxWULHlnY4scj5mNmX:ls1+kvwwu2ETz5C6apgWE7Q=]"}`))
 			out, err := DecryptFile(tempFileName, tempDir)
 			Convey("should fail and describe that the key could not be found", func() {
 				So(err, ShouldBeNil)
-				So(string(out), ShouldEqual, `{"_public_key": "8d8647e2eeb6d2e31228e6df7da3df921ec3b799c3f66a171cd37a1ed3004e7d", "a": "b"}`)
+				So(string(out), ShouldEqual, `{"_public_key": "`+validPubKey+`", "a": "b"}`)
 			})
 		})
 
