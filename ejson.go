@@ -12,8 +12,10 @@ import (
 	"os"
 	"strings"
 
-	"github.com/Shopify/ejson/crypto"
-	"github.com/Shopify/ejson/json"
+	"./crypto"
+	"./json"
+
+	// "encoding/gob"
 )
 
 // GenerateKeypair is used to create a new ejson keypair. It returns the keys as
@@ -45,6 +47,7 @@ func Encrypt(in io.Reader, out io.Writer) (int, error) {
 
 	pubkey, err := json.ExtractPublicKey(data)
 	if err != nil {
+		fmt.Println("ejson.go: could not extract public key")
 		return -1, err
 	}
 
@@ -97,23 +100,12 @@ func EncryptFileInPlace(filePath string) (int, error) {
 	return written, nil
 }
 
-// Decrypt reads an ejson stream from 'in' and writes the decrypted data to 'out'.
-// The private key is expected to be under 'keydir'.
-// Returns error upon failure, or nil on success.
-func Decrypt(in io.Reader, out io.Writer, keydir string) error {
-	data, err := ioutil.ReadAll(in)
-	if err != nil {
-		return err
-	}
-
-	pubkey, err := json.ExtractPublicKey(data)
-	if err != nil {
-		return err
-	}
-
+// decryptWithPubkey takes a public key, single json object, and the key path
+// and returns the new decrypted data, or a non-nil error on failure
+func decryptWithPubkey(pubkey [32]byte, obj []byte, out io.Writer, keydir string) ([]byte, error) {
 	privkey, err := findPrivateKey(pubkey, keydir)
 	if err != nil {
-		return err
+		return obj, err
 	}
 
 	myKP := crypto.Keypair{
@@ -126,14 +118,101 @@ func Decrypt(in io.Reader, out io.Writer, keydir string) error {
 		Action: decrypter.Decrypt,
 	}
 
-	newdata, err := walker.Walk(data)
+	newdata, err := walker.Walk(obj)
+	return newdata, err
+}
+
+
+//TODO: update documentation
+// Decrypt reads an ejson stream from 'in' and writes the decrypted data to 'out'.
+// The private key is expected to be under 'keydir'.
+// Returns error upon failure, or nil on success.
+func Decrypt(in io.Reader, out io.Writer, keydir string) error {
+	data, err := ioutil.ReadAll(in)
 	if err != nil {
 		return err
 	}
 
+	pubkey, err := json.ExtractPublicKey(data)
+	if err != nil {
+		fmt.Println("ejson.go: could not extract public key")
+		return err
+	}
+
+	newdata, err := decryptWithPubkey(pubkey, data, out, keydir)
+	if err != nil {
+		return err
+	}
 	_, err = out.Write(newdata)
 
 	return err
+}
+
+/* splitByteArray takes a byte array and returns all inner json objects in the format:
+		{
+			"_public_key": "abc"
+		}
+*/
+func splitByteArray(data []byte) (objects [][]byte) {
+	pubkeyByte := []byte("_public_key")
+	rightBraceByte := []byte(string("{"))
+	leftBraceByte := []byte(string("}"))
+
+	idxCurrentKey := bytes.LastIndex(data, pubkeyByte)
+	idxPrevKey := len(data) - 1
+
+	for {
+		idxRightBrace := idxCurrentKey + bytes.LastIndex(data[idxCurrentKey:idxPrevKey], leftBraceByte)
+		idxLeftBrace := bytes.LastIndex(data[:idxCurrentKey], rightBraceByte)
+		objects = append(objects, data[idxLeftBrace:idxRightBrace + len(rightBraceByte)])
+
+		idxPrevKey = idxCurrentKey
+		idxCurrentKey = bytes.LastIndex(data[:idxCurrentKey], pubkeyByte)
+		if idxCurrentKey == -1 {
+			break
+		}
+	}
+	//TODO: don't do this ugly reverse
+	for i := len(objects)/2-1; i >= 0; i-- {
+		opp := len(objects)-1-i
+		objects[i], objects[opp] = objects[opp], objects[i]
+	}
+	return objects
+}
+
+// Same as decrypt except supports an ejson array
+func DecryptArray(in io.Reader, out io.Writer, keydir string) error {
+	var buf bytes.Buffer
+	buf.Write([]byte("["))
+
+	data, err := ioutil.ReadAll(in)
+	if err != nil {
+		return err
+	}
+
+	pubkeys, err := json.ExtractPublicKeyArray(data)
+	if err != nil {
+		return err
+	}
+
+	objects := splitByteArray(data)
+	for idx, pubkey := range pubkeys {
+		newdata, err := decryptWithPubkey(pubkey, objects[idx], out, keydir)
+		if err != nil {
+			//Write anything to stderr?
+			buf.Write(objects[idx])
+		} else {
+			buf.Write(newdata)
+		}
+
+		if (idx != len(pubkeys) - 1) {
+			buf.Write([]byte(", "))
+		}
+	}
+	buf.Write([]byte("]\n"))
+	
+	_, err = out.Write(buf.Bytes())
+	return err 
 }
 
 // DecryptFile takes a path to an encrypted EJSON file and returns the data
@@ -142,7 +221,7 @@ func Decrypt(in io.Reader, out io.Writer, keydir string) error {
 // There must exist a file in keydir whose name is the public key from the
 // EJSON document, and whose contents are the corresponding private key. See
 // README.md for more details on this.
-func DecryptFile(filePath, keydir string) ([]byte, error) {
+func DecryptFile(filePath, keydir string, rFlag bool) ([]byte, error) {
 	if _, err := os.Stat(filePath); err != nil {
 		return nil, err
 	}
@@ -155,7 +234,11 @@ func DecryptFile(filePath, keydir string) ([]byte, error) {
 
 	var outBuffer bytes.Buffer
 
-	err = Decrypt(file, &outBuffer, keydir)
+	if rFlag {
+		err = DecryptArray(file, &outBuffer, keydir)
+	} else {
+		err = Decrypt(file, &outBuffer, keydir)
+	}
 
 	return outBuffer.Bytes(), err
 }

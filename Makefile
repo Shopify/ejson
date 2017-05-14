@@ -1,6 +1,6 @@
 NAME=ejson
 RUBY_MODULE=EJSON
-PACKAGE=github.com/Shopify/ejson
+PACKAGE=/Users/alex/Documents/scratch/temp/ejson
 VERSION=$(shell cat VERSION)
 GEM=pkg/$(NAME)-$(VERSION).gem
 DEB=pkg/$(NAME)_$(VERSION)_amd64.deb
@@ -10,7 +10,7 @@ MANFILES=$(shell find man -name '*.ronn' -exec echo build/{} \; | sed 's/\.ronn/
 
 GODEP_PATH=$(shell pwd)/Godeps/_workspace
 
-BUNDLE_EXEC=bundle exec
+BUNDLE_EXEC=bundle exec 
 
 .PHONY: default all binaries gem man clean dev_bootstrap
 
@@ -25,10 +25,11 @@ build/man/%.gz: man/%.ronn
 	mkdir -p "$(@D)"
 	$(BUNDLE_EXEC) ronn -r --pipe "$<" | gzip > "$@"
 
-build/bin/linux-amd64: $(GOFILES) cmd/$(NAME)/version.go
-	GOPATH=$(GODEP_PATH):$$GOPATH gox -osarch="linux/amd64" -output="$@" "$(PACKAGE)/cmd/$(NAME)"
+# build/bin/linux-amd64: $(GOFILES) cmd/$(NAME)/version.go
+# 	GOPATH=$(GODEP_PATH):$$GOPATH gox -osarch="linux/amd64" -output="$@" "$(PACKAGE)/cmd/$(NAME)"
 build/bin/darwin-amd64: $(GOFILES) cmd/$(NAME)/version.go
-	GOPATH=$(GODEP_PATH):$$GOPATH gox -osarch="darwin/amd64" -output="$@" "$(PACKAGE)/cmd/$(NAME)"
+	# GOPATH=$(GODEP_PATH):/Users/alex/go gox -osarch="darwin/amd64" -output="$@" "./cmd/$(NAME)"
+	GOPATH=/Users/alex/Documents/scratch/temp/ejson gox -osarch="darwin/amd64" -output="$@" "./cmd/$(NAME)"
 
 $(GEM): rubygem/$(NAME)-$(VERSION).gem
 	mkdir -p $(@D)

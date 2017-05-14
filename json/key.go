@@ -3,6 +3,7 @@ package json
 import (
 	"encoding/hex"
 	"encoding/json"
+	"fmt"
 	"errors"
 )
 
@@ -59,4 +60,60 @@ missing:
 invalid:
 	err = ErrPublicKeyInvalid
 	return
+}
+
+func ExtractPublicKeyArray(data []byte) (keys [][32]byte, err error) {
+	var (
+		obj []map[string]interface{}
+		ks []string
+		bs [][]byte
+		ksAppendable string
+		bsAppendable []byte
+		keyAppendable [32]byte
+	)
+	err = json.Unmarshal(data, &obj)
+	if err != nil {
+		fmt.Println("key.go: could not unmarshal onto array struct")
+		return
+	}
+	for idx, innerObj := range obj {
+		k, ok := innerObj[PublicKeyField]
+		if !ok {
+			goto missing
+		}
+
+		ksAppendable, ok = k.(string) //appending to ks
+		if !ok {
+			fmt.Println("1")
+			goto invalid
+		}
+		if len(ksAppendable) != 64 {
+			fmt.Println("2")
+			goto invalid
+		}
+		ks = append(ks, k.(string))
+
+		bsAppendable, err = hex.DecodeString(ks[idx]) //appending to bs
+		if err != nil {
+			fmt.Println("3")
+			goto invalid
+		}
+		if len(bsAppendable) != 32 {
+			fmt.Println("4")
+			goto invalid
+		}
+		bs = append(bs, bsAppendable)
+		
+		copy(keyAppendable[:], bs[idx])
+		keys = append(keys, keyAppendable)
+		continue
+
+	missing:
+		err = ErrPublicKeyMissing
+		return
+	invalid:
+		err = ErrPublicKeyInvalid
+		return
+	}
+	return keys, err
 }
