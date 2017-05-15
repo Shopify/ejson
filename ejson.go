@@ -14,8 +14,6 @@ import (
 
 	"./crypto"
 	"./json"
-
-	// "encoding/gob"
 )
 
 // GenerateKeypair is used to create a new ejson keypair. It returns the keys as
@@ -67,7 +65,7 @@ func Encrypt(in io.Reader, out io.Writer) (int, error) {
 // EncryptFileInPlace takes a path to a file on disk, which must be a valid EJSON file
 // (see README.md for more on what constitutes a valid EJSON file). Any
 // encryptable-but-unencrypted fields in the file will be encrypted using the
-// public key embdded in the file, and the resulting text will be written over
+// public key embedded in the file, and the resulting text will be written over
 // the file present on disk.
 func EncryptFileInPlace(filePath string) (int, error) {
 	var fileMode os.FileMode
@@ -122,7 +120,6 @@ func decryptWithPubkey(pubkey [32]byte, obj []byte, out io.Writer, keydir string
 	return newdata, err
 }
 
-
 //TODO: update documentation
 // Decrypt reads an ejson stream from 'in' and writes the decrypted data to 'out'.
 // The private key is expected to be under 'keydir'.
@@ -148,34 +145,68 @@ func Decrypt(in io.Reader, out io.Writer, keydir string) error {
 	return err
 }
 
-/* splitByteArray takes a byte array and returns all inner json objects in the format:
+/* splitJSONArray takes a byte array and returns all inner json objects of the format:
 		{
 			"_public_key": "abc"
 		}
+	ASSUMES: JSON is not malformed
 */
-func splitByteArray(data []byte) (objects [][]byte) {
-	pubkeyByte := []byte("_public_key")
-	rightBraceByte := []byte(string("{"))
-	leftBraceByte := []byte(string("}"))
+func splitJSONArray(data []byte) (objects [][]byte) {
+	dataString := string(data)
+	pubkey := "_public_key"
+	rightBrace := string("}")
+	leftBrace := string("{")
 
-	idxCurrentKey := bytes.LastIndex(data, pubkeyByte)
-	idxPrevKey := len(data) - 1
+	idxCurrentKey := strings.Index(dataString, pubkey)
+	idxPrevKey := 0
 
 	for {
-		idxRightBrace := idxCurrentKey + bytes.LastIndex(data[idxCurrentKey:idxPrevKey], leftBraceByte)
-		idxLeftBrace := bytes.LastIndex(data[:idxCurrentKey], rightBraceByte)
-		objects = append(objects, data[idxLeftBrace:idxRightBrace + len(rightBraceByte)])
+		fmt.Println("curr: ", idxCurrentKey)
+		fmt.Println("prev: ", idxPrevKey)
 
-		idxPrevKey = idxCurrentKey
-		idxCurrentKey = bytes.LastIndex(data[:idxCurrentKey], pubkeyByte)
-		if idxCurrentKey == -1 {
+		idxLeftBrace := -1
+		rightBraceCount := 0
+		for idxChar := len(dataString[:idxCurrentKey])-1; idxChar >= 0; idxChar-- {
+			if (string(dataString[idxChar]) == rightBrace) {
+				rightBraceCount += 1
+			} else if (string(dataString[idxChar]) == leftBrace) {
+				if (rightBraceCount == 0) {
+					idxLeftBrace = idxChar
+					break
+				} else {
+					rightBraceCount -= 1
+				}
+			}
+		}
+
+		idxRightBrace := -1
+		leftBraceCount := 0
+		for idxChar, char := range dataString[idxCurrentKey:] {
+			// fmt.Println("leftBraceCount: ", leftBraceCount, " char: ", string(char))
+			if (string(char) == leftBrace) {
+				leftBraceCount += 1
+			} else if (string(char) == rightBrace) {
+				if (leftBraceCount == 0) {
+					idxRightBrace = idxChar + idxCurrentKey
+					break
+				} else {
+					leftBraceCount -= 1
+				}
+			}
+		}
+
+		// fmt.Println("leftBrace: ", idxLeftBrace, " rightBrace: ", idxRightBrace)
+		// fmt.Println(dataString[idxLeftBrace:idxRightBrace+1])
+
+		objects = append(objects, []byte(dataString[idxLeftBrace:idxRightBrace+1]))
+
+		increment := strings.Index(dataString[idxCurrentKey+len(pubkey):], pubkey)
+		if increment == -1 {
 			break
 		}
-	}
-	//TODO: don't do this ugly reverse
-	for i := len(objects)/2-1; i >= 0; i-- {
-		opp := len(objects)-1-i
-		objects[i], objects[opp] = objects[opp], objects[i]
+
+		idxPrevKey = idxCurrentKey
+		idxCurrentKey = idxCurrentKey + increment + len(pubkey)
 	}
 	return objects
 }
@@ -195,7 +226,7 @@ func DecryptArray(in io.Reader, out io.Writer, keydir string) error {
 		return err
 	}
 
-	objects := splitByteArray(data)
+	objects := splitJSONArray(data)
 	for idx, pubkey := range pubkeys {
 		newdata, err := decryptWithPubkey(pubkey, objects[idx], out, keydir)
 		if err != nil {
