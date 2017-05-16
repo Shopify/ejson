@@ -23,6 +23,7 @@ The main benefits provided by `ejson` are:
 * Secrets change synchronously with application source (as opposed to secrets
   provisioned by Configuration Management).
 * Simple, well-tested, easily-auditable source.
+
 NEW:
 * A single file can store many versions of the same secrets
 * An environment can only decrypt the portion of the secret for which it has the key pair
