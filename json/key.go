@@ -61,8 +61,8 @@ invalid:
 	return
 }
 
-// ExtractPublicKeyArray finds the _public_key value in a json array 
-// and parses out each public key.
+// ExtractPublicKeyArray marshals the input into an array of dictionaries
+// and parses out the public key from each dictionary.
 func ExtractPublicKeyArray(data []byte) (keys [][32]byte, err error) {
 	var (
 		obj []map[string]interface{}
