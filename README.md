@@ -113,6 +113,17 @@ file, and leave any existing encrypted keys untouched:
 }
 ```
 
+JSON Array:
+```json
+[{
+  "_public_key": "63ccf05a9492e68e12eeb1c705888aebdcc0080af7e594fc402beb24cce9d14f",
+  "database_password": "EJ[1:WpvX5/jG+1cU+PjzTDOVlmHkjpFhf+lFo2WWF+RiMGg=:2vIWOra8nFY1ANRdQTz+ZowBmBBV/Vj1:epXERS3pn1VDc4Gi/Zqkh+R2xM1cQFkShLF3Rg==]"
+}, {
+  "_public_key": "53393332c6c7c474af603c078f5696c8fe16677a09a711bba299a6c1c1676a59",
+  "database_password": "EJ[1:irzmtBYYxle/5Z9FpLJHwWcMKl1xqH/UvFrN9nA6KnI=:qrYZxuC7rgpvsoDEP9vxi5TLrb9Iccjy:dRvXLkDNkqjK/02D8m4co6WWpKpC6iejtdLxDA==]"
+}]
+```
+
 Try adding another plaintext secret to the file and run `ejson encrypt
 test.ejson` again. The `database_password` field will not be changed, but the
 new secret will be encrypted.
@@ -134,10 +145,27 @@ $ ejson decrypt foo.ejson
   "database_password": "1234password"
 }
 ```
+
+JSON Array:
+```
+$ ejson decrypt foo.ejson
+[{
+  "_public_key": "63ccf05a9492e68e12eeb1c705888aebdcc0080af7e594fc402beb24cce9d14f",
+  "database_password": "1234password"
+}, {
+  "_public_key": "53393332c6c7c474af603c078f5696c8fe16677a09a711bba299a6c1c1676a59",
+  "database_password": "4321password"
+}]
+```
+
 When using JSON arrays, it may be useful to immediately print out the first decrypted json block.
 To do this, use the -m flag:
 ```
 $ ejson decrypt -m foo.ejson
+{
+  "_public_key": "63ccf05a9492e68e12eeb1c705888aebdcc0080af7e594fc402beb24cce9d14f",
+  "database_password": "1234password"
+}
 ```
 
 ## Format
