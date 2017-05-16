@@ -8,3 +8,7 @@
 /rubygem/LICENSE.txt
 /rubygem/lib/ejson/version.rb
 .bundle
+.DS_Store
+src/
+rubygem/.DS_Store
+

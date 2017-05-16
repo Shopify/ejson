@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"io"
 	"os"
 	"runtime"
 	"syscall"
@@ -21,7 +22,7 @@ func main() {
 	runtime.GOMAXPROCS(runtime.NumCPU())
 
 	// Rather than using the built-in help printer, display the bundled manpages.
-	cli.HelpPrinter = func(templ string, data interface{}) {
+	cli.HelpPrinter = func(w io.Writer, templ string, data interface{}) {
 		if cmd, ok := data.(cli.Command); ok {
 			switch cmd.Name {
 			case "encrypt", "decrypt", "keygen":
@@ -65,9 +66,13 @@ func main() {
 					Name:  "o",
 					Usage: "print output to the provided file, rather than stdout",
 				},
+				cli.BoolFlag{
+					Name:  "m",
+					Usage: "immediately return the first decrypted json object",
+				},
 			},
 			Action: func(c *cli.Context) {
-				if err := decryptAction(c.Args(), c.GlobalString("keydir"), c.String("o")); err != nil {
+				if err := decryptAction(c.Args(), c.GlobalString("keydir"), c.String("o"), c.Bool("m")); err != nil {
 					fmt.Println("Decryption failed:", err)
 					os.Exit(1)
 				}
