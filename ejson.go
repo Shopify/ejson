@@ -65,12 +65,21 @@ func encryptArray(in io.Reader, out io.Writer) (int, error) {
 		return -1, err
 	}
 
-	pubkeys, err := json.ExtractPublicKeyArray(data)
-	if err != nil {
+	objects := splitJSONArray(data)
+
+	var pubkeys [][32]byte
+	for _, object := range objects {
+		new_key, err := json.ExtractPublicKey(object)
+		if err != nil {
+			return -1, err
+		}
+		pubkeys = append(pubkeys, new_key)
+	}
+	if (len(pubkeys) != len(objects)) {
+		err = fmt.Errorf("EJSON is malformed: public key field may be missing in a top-level json object")
 		return -1, err
 	}
 
-	objects := splitJSONArray(data)
 	for idx, pubkey := range pubkeys {
 		newdata, err := encryptWithPubkey(pubkey, objects[idx], out)
 		if err != nil {
@@ -246,8 +255,8 @@ func splitJSONArray(data []byte) (objects [][]byte) {
 	return objects
 }
 
-// decryptArray reads an ejson stream, extracts all public keys, tries to split the json array
-// into its outer json objects, then decrypts each object
+// decryptArray reads an ejson stream, tries to split the json array
+// into its outer json objects, , extracts each public key, then decrypts each object.
 // returns error upon failure, or nil on success
 func decryptArray(in io.Reader, out io.Writer, keydir string, immediate bool) error {
 	var buf bytes.Buffer
@@ -258,16 +267,24 @@ func decryptArray(in io.Reader, out io.Writer, keydir string, immediate bool) er
 		return err
 	}
 
-	pubkeys, err := json.ExtractPublicKeyArray(data)
-	if err != nil {
+	objects := splitJSONArray(data)
+
+	var pubkeys [][32]byte
+	for _, object := range objects {
+		new_key, err := json.ExtractPublicKey(object)
+		if err != nil {
+			return err
+		}
+		pubkeys = append(pubkeys, new_key)
+	}
+	if (len(pubkeys) != len(objects)) {
+		err = fmt.Errorf("EJSON is malformed: public key field may be missing in a top-level json object")
 		return err
 	}
 
-	objects := splitJSONArray(data)
 	for idx, pubkey := range pubkeys {
 		newdata, err := decryptWithPubkey(pubkey, objects[idx], out, keydir)
 		if err != nil {
-			//Write anything to stderr?
 			buf.Write(objects[idx])
 		} else {
 			if immediate {
