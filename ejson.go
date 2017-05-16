@@ -27,13 +27,12 @@ func GenerateKeypair() (pub string, priv string, err error) {
 	return kp.PublicString(), kp.PrivateString(), nil
 }
 
-//TODO: update documentation here
-// Encrypt reads all contents from 'in', extracts the pubkey
+// encrypt reads all contents from 'in', extracts the pubkey
 // and performs the requested encryption operation, writing
 // the resulting data to 'out'.
 // Returns the number of bytes written and any error that might have
 // occurred.
-func Encrypt(in io.Reader, out io.Writer) (int, error) {
+func encrypt(in io.Reader, out io.Writer) (int, error) {
 	data, err := ioutil.ReadAll(in)
 	if err != nil {
 		return -1, err
@@ -52,7 +51,12 @@ func Encrypt(in io.Reader, out io.Writer) (int, error) {
 	return out.Write(newdata)
 }
 
-func EncryptArray(in io.Reader, out io.Writer) (int, error) {
+// encryptArray extracts all public keys from in, 
+// tries to split a json array into its outer json objects,
+// then encrypts each object.
+// Returns the number of bytes written and any error that might have
+// occurred.
+func encryptArray(in io.Reader, out io.Writer) (int, error) {
 	var buf bytes.Buffer
 	buf.Write([]byte("["))
 
@@ -85,6 +89,8 @@ func EncryptArray(in io.Reader, out io.Writer) (int, error) {
 	return out.Write(buf.Bytes())
 }
 
+// encryptWithPubkey takes a public key, single json object,
+// and returns the encrypted data, or a non-nil error on failure
 func encryptWithPubkey(pubkey [32]byte, obj []byte, out io.Writer) ([]byte, error) {
 	var myKP crypto.Keypair
 	if err := myKP.Generate(); err != nil {
@@ -121,11 +127,11 @@ func EncryptFileInPlace(filePath string) (int, error) {
 
 	var outBuffer bytes.Buffer
 
-	written, err := Encrypt(file, &outBuffer)
+	written, err := encrypt(file, &outBuffer)
 	if (err != nil) && (err.Error() == "json: cannot unmarshal array into Go value of type map[string]interface {}") {
 		outBuffer.Reset()
 		file.Seek(0, 0)
-		written, err = EncryptArray(file, &outBuffer)
+		written, err = encryptArray(file, &outBuffer)
 	}
 	if err != nil {
 		return -1, err
@@ -164,11 +170,10 @@ func decryptWithPubkey(pubkey [32]byte, obj []byte, out io.Writer, keydir string
 	return newdata, err
 }
 
-//TODO: update documentation
-// Decrypt reads an ejson stream from 'in' and writes the decrypted data to 'out'.
+// decrypt reads an ejson stream from 'in' and writes the decrypted data to 'out'.
 // The private key is expected to be under 'keydir'.
 // Returns error upon failure, or nil on success.
-func Decrypt(in io.Reader, out io.Writer, keydir string) error {
+func decrypt(in io.Reader, out io.Writer, keydir string) error {
 	data, err := ioutil.ReadAll(in)
 	if err != nil {
 		return err
@@ -188,12 +193,8 @@ func Decrypt(in io.Reader, out io.Writer, keydir string) error {
 	return err
 }
 
-/* splitJSONArray takes a byte array and returns all inner json objects of the format:
-		{
-			"_public_key": "abc"
-		}
-	ASSUMES: JSON is not malformed, pubkey is in every outer json block, pubkey field is in top level
-*/
+// splitJSONArray takes a byte array and returns all outer json objects that have "_public_key" in them.
+// requires: JSON is not malformed, pubkey is in every outer json block.
 func splitJSONArray(data []byte) (objects [][]byte) {
 	dataString := string(data)
 	pubkey := "_public_key"
@@ -245,8 +246,10 @@ func splitJSONArray(data []byte) (objects [][]byte) {
 	return objects
 }
 
-// Same as decrypt except supports an ejson array
-func DecryptArray(in io.Reader, out io.Writer, keydir string, immediate bool) error {
+// decryptArray reads an ejson stream, extracts all public keys, tries to split the json array
+// into its outer json objects, then decrypts each object
+// returns error upon failure, or nil on success
+func decryptArray(in io.Reader, out io.Writer, keydir string, immediate bool) error {
 	var buf bytes.Buffer
 	buf.Write([]byte("["))
 
@@ -304,11 +307,11 @@ func DecryptFile(filePath, keydir string, immediate bool) ([]byte, error) {
 
 	var outBuffer bytes.Buffer
 
-	err = Decrypt(file, &outBuffer, keydir)
+	err = decrypt(file, &outBuffer, keydir)
 	if (err != nil) && (err.Error() == "json: cannot unmarshal array into Go value of type map[string]interface {}") {
 		outBuffer.Reset()
 		file.Seek(0, 0)
-		err = DecryptArray(file, &outBuffer, keydir, immediate)
+		err = decryptArray(file, &outBuffer, keydir, immediate)
 	}
 
 	return outBuffer.Bytes(), err

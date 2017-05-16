@@ -61,6 +61,8 @@ invalid:
 	return
 }
 
+// ExtractPublicKeyArray finds the _public_key value in a json array 
+// and parses out each public key.
 func ExtractPublicKeyArray(data []byte) (keys [][32]byte, err error) {
 	var (
 		obj []map[string]interface{}
@@ -80,7 +82,7 @@ func ExtractPublicKeyArray(data []byte) (keys [][32]byte, err error) {
 			goto missing
 		}
 
-		ksAppendable, ok = k.(string) //appending to ks
+		ksAppendable, ok = k.(string)
 		if !ok {
 			goto invalid
 		}
@@ -89,7 +91,7 @@ func ExtractPublicKeyArray(data []byte) (keys [][32]byte, err error) {
 		}
 		ks = append(ks, k.(string))
 
-		bsAppendable, err = hex.DecodeString(ks[idx]) //appending to bs
+		bsAppendable, err = hex.DecodeString(ks[idx])
 		if err != nil {
 			goto invalid
 		}
