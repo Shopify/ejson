@@ -1,6 +1,6 @@
 NAME=ejson
 RUBY_MODULE=EJSON
-PACKAGE=/Users/alex/Documents/scratch/temp/ejson
+PACKAGE=github.com/Shopify/ejson
 VERSION=$(shell cat VERSION)
 GEM=pkg/$(NAME)-$(VERSION).gem
 DEB=pkg/$(NAME)_$(VERSION)_amd64.deb
