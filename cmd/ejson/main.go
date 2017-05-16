@@ -67,12 +67,12 @@ func main() {
 					Usage: "print output to the provided file, rather than stdout",
 				},
 				cli.BoolFlag{
-					Name:	"array, r",
-					Usage:	"decrypt/encrypt an EJSON array",
+					Name:  "m",
+					Usage: "immediately return the first decrypted json object",
 				},
 			},
 			Action: func(c *cli.Context) {
-				if err := decryptAction(c.Args(), c.GlobalString("keydir"), c.String("o"), c.Bool("array")); err != nil {
+				if err := decryptAction(c.Args(), c.GlobalString("keydir"), c.String("o"), c.Bool("m")); err != nil {
 					fmt.Println("Decryption failed:", err)
 					os.Exit(1)
 				}

@@ -10,7 +10,7 @@ import (
 
 func encryptAction(args []string) error {
 	if len(args) < 1 {
-		return fmt.Errorf("at least one file path must be given, and you suck")
+		return fmt.Errorf("at least one file path must be given")
 	}
 	for _, filePath := range args {
 		n, err := ejson.EncryptFileInPlace(filePath)
@@ -22,13 +22,12 @@ func encryptAction(args []string) error {
 	return nil
 }
 
-func decryptAction(args []string, keydir, outFile string, rFlag bool) error {
+func decryptAction(args []string, keydir, outFile string, immediate bool) error {
 	if len(args) != 1 {
 		return fmt.Errorf("exactly one file path must be given")
 	}
-	decrypted, err := ejson.DecryptFile(args[0], keydir, rFlag)
+	decrypted, err := ejson.DecryptFile(args[0], keydir, immediate)
 	if err != nil {
-		fmt.Println("actions.go: decryptfile function failed")
 		return err
 	}
 

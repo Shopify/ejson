@@ -27,6 +27,7 @@ func GenerateKeypair() (pub string, priv string, err error) {
 	return kp.PublicString(), kp.PrivateString(), nil
 }
 
+//TODO: update documentation here
 // Encrypt reads all contents from 'in', extracts the pubkey
 // and performs the requested encryption operation, writing
 // the resulting data to 'out'.
@@ -38,15 +39,56 @@ func Encrypt(in io.Reader, out io.Writer) (int, error) {
 		return -1, err
 	}
 
-	var myKP crypto.Keypair
-	if err = myKP.Generate(); err != nil {
+	pubkey, err := json.ExtractPublicKey(data)
+	if err != nil {
 		return -1, err
 	}
 
-	pubkey, err := json.ExtractPublicKey(data)
+	newdata, err := encryptWithPubkey(pubkey, data, out)
 	if err != nil {
-		fmt.Println("ejson.go: could not extract public key")
 		return -1, err
+	}
+
+	return out.Write(newdata)
+}
+
+func EncryptArray(in io.Reader, out io.Writer) (int, error) {
+	var buf bytes.Buffer
+	buf.Write([]byte("["))
+
+	data, err := ioutil.ReadAll(in)
+	if err != nil {
+		return -1, err
+	}
+
+	pubkeys, err := json.ExtractPublicKeyArray(data)
+	if err != nil {
+		return -1, err
+	}
+
+	objects := splitJSONArray(data)
+	for idx, pubkey := range pubkeys {
+		newdata, err := encryptWithPubkey(pubkey, objects[idx], out)
+		if err != nil {
+			//Write anything to stderr?
+			buf.Write(objects[idx])
+		} else {
+			buf.Write(newdata)
+		}
+
+		if (idx != len(pubkeys) - 1) {
+			buf.Write([]byte(", "))
+		}
+	}
+	buf.Write([]byte("]\n"))
+	
+	return out.Write(buf.Bytes())
+}
+
+func encryptWithPubkey(pubkey [32]byte, obj []byte, out io.Writer) ([]byte, error) {
+	var myKP crypto.Keypair
+	if err := myKP.Generate(); err != nil {
+		return nil, err
 	}
 
 	encrypter := myKP.Encrypter(pubkey)
@@ -54,12 +96,9 @@ func Encrypt(in io.Reader, out io.Writer) (int, error) {
 		Action: encrypter.Encrypt,
 	}
 
-	newdata, err := walker.Walk(data)
-	if err != nil {
-		return -1, err
-	}
+	newdata, err := walker.Walk(obj)
 
-	return out.Write(newdata)
+	return newdata, err
 }
 
 // EncryptFileInPlace takes a path to a file on disk, which must be a valid EJSON file
@@ -83,6 +122,11 @@ func EncryptFileInPlace(filePath string) (int, error) {
 	var outBuffer bytes.Buffer
 
 	written, err := Encrypt(file, &outBuffer)
+	if (err != nil) && (err.Error() == "json: cannot unmarshal array into Go value of type map[string]interface {}") {
+		outBuffer.Reset()
+		file.Seek(0, 0)
+		written, err = EncryptArray(file, &outBuffer)
+	}
 	if err != nil {
 		return -1, err
 	}
@@ -132,7 +176,6 @@ func Decrypt(in io.Reader, out io.Writer, keydir string) error {
 
 	pubkey, err := json.ExtractPublicKey(data)
 	if err != nil {
-		fmt.Println("ejson.go: could not extract public key")
 		return err
 	}
 
@@ -149,7 +192,7 @@ func Decrypt(in io.Reader, out io.Writer, keydir string) error {
 		{
 			"_public_key": "abc"
 		}
-	ASSUMES: JSON is not malformed
+	ASSUMES: JSON is not malformed, pubkey is in every outer json block, pubkey field is in top level
 */
 func splitJSONArray(data []byte) (objects [][]byte) {
 	dataString := string(data)
@@ -158,12 +201,8 @@ func splitJSONArray(data []byte) (objects [][]byte) {
 	leftBrace := string("{")
 
 	idxCurrentKey := strings.Index(dataString, pubkey)
-	idxPrevKey := 0
 
 	for {
-		fmt.Println("curr: ", idxCurrentKey)
-		fmt.Println("prev: ", idxPrevKey)
-
 		idxLeftBrace := -1
 		rightBraceCount := 0
 		for idxChar := len(dataString[:idxCurrentKey])-1; idxChar >= 0; idxChar-- {
@@ -182,7 +221,6 @@ func splitJSONArray(data []byte) (objects [][]byte) {
 		idxRightBrace := -1
 		leftBraceCount := 0
 		for idxChar, char := range dataString[idxCurrentKey:] {
-			// fmt.Println("leftBraceCount: ", leftBraceCount, " char: ", string(char))
 			if (string(char) == leftBrace) {
 				leftBraceCount += 1
 			} else if (string(char) == rightBrace) {
@@ -195,24 +233,20 @@ func splitJSONArray(data []byte) (objects [][]byte) {
 			}
 		}
 
-		// fmt.Println("leftBrace: ", idxLeftBrace, " rightBrace: ", idxRightBrace)
-		// fmt.Println(dataString[idxLeftBrace:idxRightBrace+1])
-
 		objects = append(objects, []byte(dataString[idxLeftBrace:idxRightBrace+1]))
 
-		increment := strings.Index(dataString[idxCurrentKey+len(pubkey):], pubkey)
+		increment := strings.Index(dataString[idxRightBrace:], pubkey)
 		if increment == -1 {
 			break
 		}
 
-		idxPrevKey = idxCurrentKey
-		idxCurrentKey = idxCurrentKey + increment + len(pubkey)
+		idxCurrentKey = increment + idxRightBrace
 	}
 	return objects
 }
 
 // Same as decrypt except supports an ejson array
-func DecryptArray(in io.Reader, out io.Writer, keydir string) error {
+func DecryptArray(in io.Reader, out io.Writer, keydir string, immediate bool) error {
 	var buf bytes.Buffer
 	buf.Write([]byte("["))
 
@@ -233,6 +267,11 @@ func DecryptArray(in io.Reader, out io.Writer, keydir string) error {
 			//Write anything to stderr?
 			buf.Write(objects[idx])
 		} else {
+			if immediate {
+				_, err = out.Write(newdata)
+				_, _ = out.Write([]byte("\n"))
+				return err
+			}
 			buf.Write(newdata)
 		}
 
@@ -252,7 +291,7 @@ func DecryptArray(in io.Reader, out io.Writer, keydir string) error {
 // There must exist a file in keydir whose name is the public key from the
 // EJSON document, and whose contents are the corresponding private key. See
 // README.md for more details on this.
-func DecryptFile(filePath, keydir string, rFlag bool) ([]byte, error) {
+func DecryptFile(filePath, keydir string, immediate bool) ([]byte, error) {
 	if _, err := os.Stat(filePath); err != nil {
 		return nil, err
 	}
@@ -265,10 +304,11 @@ func DecryptFile(filePath, keydir string, rFlag bool) ([]byte, error) {
 
 	var outBuffer bytes.Buffer
 
-	if rFlag {
-		err = DecryptArray(file, &outBuffer, keydir)
-	} else {
-		err = Decrypt(file, &outBuffer, keydir)
+	err = Decrypt(file, &outBuffer, keydir)
+	if (err != nil) && (err.Error() == "json: cannot unmarshal array into Go value of type map[string]interface {}") {
+		outBuffer.Reset()
+		file.Seek(0, 0)
+		err = DecryptArray(file, &outBuffer, keydir, immediate)
 	}
 
 	return outBuffer.Bytes(), err

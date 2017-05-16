@@ -3,7 +3,6 @@ package json
 import (
 	"encoding/hex"
 	"encoding/json"
-	"fmt"
 	"errors"
 )
 
@@ -73,7 +72,6 @@ func ExtractPublicKeyArray(data []byte) (keys [][32]byte, err error) {
 	)
 	err = json.Unmarshal(data, &obj)
 	if err != nil {
-		fmt.Println("key.go: could not unmarshal onto array struct")
 		return
 	}
 	for idx, innerObj := range obj {
@@ -84,22 +82,18 @@ func ExtractPublicKeyArray(data []byte) (keys [][32]byte, err error) {
 
 		ksAppendable, ok = k.(string) //appending to ks
 		if !ok {
-			fmt.Println("1")
 			goto invalid
 		}
 		if len(ksAppendable) != 64 {
-			fmt.Println("2")
 			goto invalid
 		}
 		ks = append(ks, k.(string))
 
 		bsAppendable, err = hex.DecodeString(ks[idx]) //appending to bs
 		if err != nil {
-			fmt.Println("3")
 			goto invalid
 		}
 		if len(bsAppendable) != 32 {
-			fmt.Println("4")
 			goto invalid
 		}
 		bs = append(bs, bsAppendable)
