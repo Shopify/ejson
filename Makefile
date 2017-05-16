@@ -26,11 +26,9 @@ build/man/%.gz: man/%.ronn
 	$(BUNDLE_EXEC) ronn -r --pipe "$<" | gzip > "$@"
 
 build/bin/linux-amd64: $(GOFILES) cmd/$(NAME)/version.go
-	# GOPATH=$(GODEP_PATH):$$GOPATH gox -osarch="linux/amd64" -output="$@" "$(PACKAGE)/cmd/$(NAME)"
-	GOPATH=/Users/alex/Documents/scratch/temp/ejson gox -osarch="linux/amd64" -output="$@" "./cmd/$(NAME)"
+	GOPATH=$(GODEP_PATH) gox -osarch="linux/amd64" -output="$@" "./cmd/$(NAME)"
 build/bin/darwin-amd64: $(GOFILES) cmd/$(NAME)/version.go
-	# GOPATH=$(GODEP_PATH):/Users/alex/go gox -osarch="darwin/amd64" -output="$@" "./cmd/$(NAME)"
-	GOPATH=/Users/alex/Documents/scratch/temp/ejson gox -osarch="darwin/amd64" -output="$@" "./cmd/$(NAME)"
+	GOPATH=$(GODEP_PATH) gox -osarch="darwin/amd64" -output="$@" "./cmd/$(NAME)"
 
 $(GEM): rubygem/$(NAME)-$(VERSION).gem
 	mkdir -p $(@D)

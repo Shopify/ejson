@@ -32,3 +32,4 @@ PLATFORMS
 DEPENDENCIES
   fpm
   ronn
+  
