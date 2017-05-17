@@ -69,11 +69,11 @@ func encryptArray(in io.Reader, out io.Writer) (int, error) {
 
 	var pubkeys [][32]byte
 	for _, object := range objects {
-		new_key, err := json.ExtractPublicKey(object)
+		newKey, err := json.ExtractPublicKey(object)
 		if err != nil {
 			return -1, err
 		}
-		pubkeys = append(pubkeys, new_key)
+		pubkeys = append(pubkeys, newKey)
 	}
 	if (len(pubkeys) != len(objects)) {
 		err = fmt.Errorf("EJSON is malformed: public key field may be missing in a top-level json object")
@@ -271,11 +271,11 @@ func decryptArray(in io.Reader, out io.Writer, keydir string, immediate bool) er
 
 	var pubkeys [][32]byte
 	for _, object := range objects {
-		new_key, err := json.ExtractPublicKey(object)
+		newKey, err := json.ExtractPublicKey(object)
 		if err != nil {
 			return err
 		}
-		pubkeys = append(pubkeys, new_key)
+		pubkeys = append(pubkeys, newKey)
 	}
 	if (len(pubkeys) != len(objects)) {
 		err = fmt.Errorf("EJSON is malformed: public key field may be missing in a top-level json object")
