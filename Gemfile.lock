@@ -18,7 +18,7 @@ GEM
       ffi
       json (>= 1.7.7)
     hpricot (0.8.6)
-    json (1.8.1)
+    json (1.8.6)
     mustache (0.99.7)
     rdiscount (2.1.7.1)
     ronn (0.7.3)
@@ -32,3 +32,4 @@ PLATFORMS
 DEPENDENCIES
   fpm
   ronn
+  

@@ -116,7 +116,7 @@ func TestDecryptFile(t *testing.T) {
 
 	Convey("DecryptFile", t, func() {
 		Convey("called with a non-existent file", func() {
-			_, err := DecryptFile("/does/not/exist", "/doesnt/matter")
+			_, err := DecryptFile("/does/not/exist", "/doesnt/matter", false)
 			Convey("should fail with ENOEXIST", func() {
 				So(os.IsNotExist(err), ShouldBeTrue)
 			})
@@ -124,7 +124,7 @@ func TestDecryptFile(t *testing.T) {
 
 		Convey("called with an invalid JSON file", func() {
 			setData(tempFileName, []byte(`{"a": "b"]`))
-			_, err := DecryptFile(tempFileName, tempDir)
+			_, err := DecryptFile(tempFileName, tempDir, false)
 			Convey("should fail", func() {
 				So(err, ShouldNotBeNil)
 				So(err.Error(), ShouldContainSubstring, "invalid character")
@@ -133,7 +133,7 @@ func TestDecryptFile(t *testing.T) {
 
 		Convey("called with an invalid keypair", func() {
 			setData(tempFileName, []byte(`{"_public_key": "invalid"}`))
-			_, err := DecryptFile(tempFileName, tempDir)
+			_, err := DecryptFile(tempFileName, tempDir, false)
 			Convey("should fail", func() {
 				So(err, ShouldNotBeNil)
 				So(err.Error(), ShouldEqual, "public key has invalid format")
@@ -142,7 +142,7 @@ func TestDecryptFile(t *testing.T) {
 
 		Convey("called with a valid keypair but no corresponding entry in keydir", func() {
 			setData(tempFileName, []byte(`{"_public_key": "`+invalidPubKey+`", "a": "b"}`))
-			_, err := DecryptFile(tempFileName, tempDir)
+			_, err := DecryptFile(tempFileName, tempDir, false)
 			Convey("should fail and describe that the key could not be found", func() {
 				So(err, ShouldNotBeNil)
 				So(err.Error(), ShouldContainSubstring, "couldn't read key file")
@@ -151,7 +151,7 @@ func TestDecryptFile(t *testing.T) {
 
 		Convey("called with a valid keypair and a corresponding entry in keydir", func() {
 			setData(tempFileName, []byte(`{"_public_key": "`+validPubKey+`", "a": "EJ[1:KR1IxNZnTZQMP3OR1NdOpDQ1IcLD83FSuE7iVNzINDk=:XnYW1HOxMthBFMnxWULHlnY4scj5mNmX:ls1+kvwwu2ETz5C6apgWE7Q=]"}`))
-			out, err := DecryptFile(tempFileName, tempDir)
+			out, err := DecryptFile(tempFileName, tempDir, false)
 			Convey("should fail and describe that the key could not be found", func() {
 				So(err, ShouldBeNil)
 				So(string(out), ShouldEqual, `{"_public_key": "`+validPubKey+`", "a": "b"}`)

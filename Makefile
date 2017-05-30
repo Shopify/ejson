@@ -10,7 +10,7 @@ MANFILES=$(shell find man -name '*.ronn' -exec echo build/{} \; | sed 's/\.ronn/
 
 GODEP_PATH=$(shell pwd)/Godeps/_workspace
 
-BUNDLE_EXEC=bundle exec
+BUNDLE_EXEC=bundle exec 
 
 .PHONY: default all binaries gem man clean dev_bootstrap
 
@@ -26,9 +26,9 @@ build/man/%.gz: man/%.ronn
 	$(BUNDLE_EXEC) ronn -r --pipe "$<" | gzip > "$@"
 
 build/bin/linux-amd64: $(GOFILES) cmd/$(NAME)/version.go
-	GOPATH=$(GODEP_PATH):$$GOPATH gox -osarch="linux/amd64" -output="$@" "$(PACKAGE)/cmd/$(NAME)"
+	GOPATH=$(GODEP_PATH) gox -osarch="linux/amd64" -output="$@" "./cmd/$(NAME)"
 build/bin/darwin-amd64: $(GOFILES) cmd/$(NAME)/version.go
-	GOPATH=$(GODEP_PATH):$$GOPATH gox -osarch="darwin/amd64" -output="$@" "$(PACKAGE)/cmd/$(NAME)"
+	GOPATH=$(GODEP_PATH) gox -osarch="darwin/amd64" -output="$@" "./cmd/$(NAME)"
 
 $(GEM): rubygem/$(NAME)-$(VERSION).gem
 	mkdir -p $(@D)
