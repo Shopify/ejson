@@ -4,9 +4,7 @@ up:
   - homebrew:
       - gnu-tar
       - glide
-  - ruby:
-      package: shopify/shopify/shopify-ruby
-      version: 2.2.3p172-shopify
+  - ruby: 2.3.3
   - go: 1.7.1
   - bundler
   - custom:
