@@ -14,6 +14,9 @@ var (
 	validPubKey   = "8d8647e2eeb6d2e31228e6df7da3df921ec3b799c3f66a171cd37a1ed3004e7d"
 	invalidPubKey = "8d8647e2eeb6d2e31228e6df7da3df921ec3b799c3f66a171cd37a1ed0000000"
 	validPrivKey  = "c5caa31a5b8cb2be0074b37c56775f533b368b81d8fd33b94181f79bd6e47f87"
+	validPubKey2  = "368e904d22a5ad113b192b77fd7e761e919bbd55a43184e786b977036b7eb125"
+	validPrivKey2 = "df6b886533713d0ee45c816fb96e891d58a44a10f857d8464e3c45af82779101"
+	shortPrivKey  = "8d8647e2eeb6d2e31228e6df7da3df921ec3b799c3f66a171cd37a1e000000"
 )
 
 func TestGenerateKeypair(t *testing.T) {
@@ -116,7 +119,7 @@ func TestDecryptFile(t *testing.T) {
 
 	Convey("DecryptFile", t, func() {
 		Convey("called with a non-existent file", func() {
-			_, err := DecryptFile("/does/not/exist", "/doesnt/matter")
+			_, err := DecryptFile("/does/not/exist", "/doesnt/matter", "")
 			Convey("should fail with ENOEXIST", func() {
 				So(os.IsNotExist(err), ShouldBeTrue)
 			})
@@ -124,7 +127,7 @@ func TestDecryptFile(t *testing.T) {
 
 		Convey("called with an invalid JSON file", func() {
 			setData(tempFileName, []byte(`{"a": "b"]`))
-			_, err := DecryptFile(tempFileName, tempDir)
+			_, err := DecryptFile(tempFileName, tempDir, "")
 			Convey("should fail", func() {
 				So(err, ShouldNotBeNil)
 				So(err.Error(), ShouldContainSubstring, "invalid character")
@@ -133,7 +136,7 @@ func TestDecryptFile(t *testing.T) {
 
 		Convey("called with an invalid keypair", func() {
 			setData(tempFileName, []byte(`{"_public_key": "invalid"}`))
-			_, err := DecryptFile(tempFileName, tempDir)
+			_, err := DecryptFile(tempFileName, tempDir, "")
 			Convey("should fail", func() {
 				So(err, ShouldNotBeNil)
 				So(err.Error(), ShouldEqual, "public key has invalid format")
@@ -142,7 +145,7 @@ func TestDecryptFile(t *testing.T) {
 
 		Convey("called with a valid keypair but no corresponding entry in keydir", func() {
 			setData(tempFileName, []byte(`{"_public_key": "`+invalidPubKey+`", "a": "b"}`))
-			_, err := DecryptFile(tempFileName, tempDir)
+			_, err := DecryptFile(tempFileName, tempDir, "")
 			Convey("should fail and describe that the key could not be found", func() {
 				So(err, ShouldNotBeNil)
 				So(err.Error(), ShouldContainSubstring, "couldn't read key file")
@@ -151,12 +154,29 @@ func TestDecryptFile(t *testing.T) {
 
 		Convey("called with a valid keypair and a corresponding entry in keydir", func() {
 			setData(tempFileName, []byte(`{"_public_key": "`+validPubKey+`", "a": "EJ[1:KR1IxNZnTZQMP3OR1NdOpDQ1IcLD83FSuE7iVNzINDk=:XnYW1HOxMthBFMnxWULHlnY4scj5mNmX:ls1+kvwwu2ETz5C6apgWE7Q=]"}`))
-			out, err := DecryptFile(tempFileName, tempDir)
 			Convey("should fail and describe that the key could not be found", func() {
+			out, err := DecryptFile(tempFileName, tempDir, "")
 				So(err, ShouldBeNil)
 				So(string(out), ShouldEqual, `{"_public_key": "`+validPubKey+`", "a": "b"}`)
 			})
 		})
 
+		Convey("called with a valid keypair and an invalid private key in the environment", func() {
+			setData(tempFileName, []byte(`{"_public_key": "`+validPubKey2+`", "a": "EJ[1:S9mykQiXhX+t7mlXnadmpovDaWnSHH2laEPJIRvspAY=:/P/lyebGA/zCT4WC+i4iGOZVVPJkRqK1:iJLNJwcmNW9nSp8QGLFZxzEeWFaCCQ==]"}`))
+			_, err := DecryptFile(tempFileName, tempDir, shortPrivKey)
+			Convey("should fail with invalid private key message", func() {
+				So(err, ShouldNotBeNil)
+				So(err.Error(), ShouldEqual, "invalid private key")
+			})
+		})
+
+		Convey("called with a valid keypair and private key in the environment", func() {
+			setData(tempFileName, []byte(`{"_public_key": "`+validPubKey2+`", "a": "EJ[1:S9mykQiXhX+t7mlXnadmpovDaWnSHH2laEPJIRvspAY=:/P/lyebGA/zCT4WC+i4iGOZVVPJkRqK1:iJLNJwcmNW9nSp8QGLFZxzEeWFaCCQ==]"}`))
+			out, err := DecryptFile(tempFileName, tempDir, validPrivKey2)
+			Convey("should succeed and output the decrypted secrets", func() {
+				So(err, ShouldBeNil)
+				So(string(out), ShouldEqual, `{"_public_key": "`+validPubKey2+`", "a": "secret"}`)
+			})
+		})
 	})
 }

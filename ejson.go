@@ -100,7 +100,7 @@ func EncryptFileInPlace(filePath string) (int, error) {
 // Decrypt reads an ejson stream from 'in' and writes the decrypted data to 'out'.
 // The private key is expected to be under 'keydir'.
 // Returns error upon failure, or nil on success.
-func Decrypt(in io.Reader, out io.Writer, keydir string) error {
+func Decrypt(in io.Reader, out io.Writer, keydir string, privkeyFromEnv string) error {
 	data, err := ioutil.ReadAll(in)
 	if err != nil {
 		return err
@@ -111,7 +111,7 @@ func Decrypt(in io.Reader, out io.Writer, keydir string) error {
 		return err
 	}
 
-	privkey, err := findPrivateKey(pubkey, keydir)
+	privkey, err := findPrivateKey(keydir, privkeyFromEnv, pubkey)
 	if err != nil {
 		return err
 	}
@@ -142,7 +142,7 @@ func Decrypt(in io.Reader, out io.Writer, keydir string) error {
 // There must exist a file in keydir whose name is the public key from the
 // EJSON document, and whose contents are the corresponding private key. See
 // README.md for more details on this.
-func DecryptFile(filePath, keydir string) ([]byte, error) {
+func DecryptFile(filePath, keydir string, privatekeyFromEnv string) ([]byte, error) {
 	if _, err := os.Stat(filePath); err != nil {
 		return nil, err
 	}
@@ -155,12 +155,12 @@ func DecryptFile(filePath, keydir string) ([]byte, error) {
 
 	var outBuffer bytes.Buffer
 
-	err = Decrypt(file, &outBuffer, keydir)
+	err = Decrypt(file, &outBuffer, keydir, privatekeyFromEnv)
 
 	return outBuffer.Bytes(), err
 }
 
-func findPrivateKey(pubkey [32]byte, keydir string) (privkey [32]byte, err error) {
+func readPrivateKeyFromDisk(pubkey [32]byte, keydir string) (privkey string, err error) {
 	keyFile := fmt.Sprintf("%s/%x", keydir, pubkey)
 	var fileContents []byte
 	fileContents, err = ioutil.ReadFile(keyFile)
@@ -168,17 +168,30 @@ func findPrivateKey(pubkey [32]byte, keydir string) (privkey [32]byte, err error
 		err = fmt.Errorf("couldn't read key file (%s)", err.Error())
 		return
 	}
+	privkey = string(fileContents)
+	return
+}
 
-	bs, err := hex.DecodeString(strings.TrimSpace(string(fileContents)))
+func findPrivateKey(keydir string, privkeyFromEnv string, pubkey [32]byte) (privkey [32]byte, err error) {
+	var privkeyString string
+	if privkeyFromEnv != "" {
+		privkeyString = privkeyFromEnv
+	} else {
+		privkeyString, err = readPrivateKeyFromDisk(pubkey, keydir)
+		if err != nil {
+			return privkey, err
+		}
+	}
+
+	privkeyBytes, err := hex.DecodeString(strings.TrimSpace(privkeyString))
 	if err != nil {
 		return
 	}
 
-	if len(bs) != 32 {
-		err = fmt.Errorf("invalid private key retrieved from keydir")
+	if len(privkeyBytes) != 32 {
+		err = fmt.Errorf("invalid private key")
 		return
 	}
-
-	copy(privkey[:], bs)
+	copy(privkey[:], privkeyBytes)
 	return
 }
