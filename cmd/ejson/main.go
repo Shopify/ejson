@@ -39,6 +39,11 @@ func main() {
 			Usage:  "Directory containing EJSON keys",
 			EnvVar: "EJSON_KEYDIR",
 		},
+		cli.StringFlag{
+			Name:  "private-key",
+			Value: "",
+			Usage: "The EJSON private key needed to decrypt the file",
+		},
 	}
 	app.Usage = "manage encrypted secrets using public key encryption"
 	app.Version = VERSION
@@ -67,7 +72,7 @@ func main() {
 				},
 			},
 			Action: func(c *cli.Context) {
-				if err := decryptAction(c.Args(), c.GlobalString("keydir"), c.String("o")); err != nil {
+				if err := decryptAction(c.Args(), c.GlobalString("keydir"), c.GlobalString("private-key"), c.String("o")); err != nil {
 					fmt.Println("Decryption failed:", err)
 					os.Exit(1)
 				}
