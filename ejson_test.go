@@ -153,8 +153,8 @@ func TestDecryptFile(t *testing.T) {
 
 		Convey("called with a valid keypair and a corresponding entry in keydir", func() {
 			setData(tempFileName, []byte(`{"_public_key": "`+validPubKey+`", "a": "EJ[1:KR1IxNZnTZQMP3OR1NdOpDQ1IcLD83FSuE7iVNzINDk=:XnYW1HOxMthBFMnxWULHlnY4scj5mNmX:ls1+kvwwu2ETz5C6apgWE7Q=]"}`))
-			Convey("should fail and describe that the key could not be found", func() {
 			out, err := DecryptFile(tempFileName, tempDir, "")
+			Convey("should succeed and output the decrypted secrets", func() {
 				So(err, ShouldBeNil)
 				So(string(out), ShouldEqual, `{"_public_key": "`+validPubKey+`", "a": "b"}`)
 			})
