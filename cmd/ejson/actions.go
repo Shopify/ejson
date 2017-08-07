@@ -22,11 +22,11 @@ func encryptAction(args []string) error {
 	return nil
 }
 
-func decryptAction(args []string, keydir, outFile string) error {
+func decryptAction(args []string, keydir, privkeyFromEnv, outFile string) error {
 	if len(args) != 1 {
 		return fmt.Errorf("exactly one file path must be given")
 	}
-	decrypted, err := ejson.DecryptFile(args[0], keydir)
+	decrypted, err := ejson.DecryptFile(args[0], keydir, privkeyFromEnv)
 	if err != nil {
 		return err
 	}
