@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"io/ioutil"
 	"os"
 	"runtime"
 	"syscall"
@@ -39,11 +40,6 @@ func main() {
 			Usage:  "Directory containing EJSON keys",
 			EnvVar: "EJSON_KEYDIR",
 		},
-		cli.StringFlag{
-			Name:  "private-key",
-			Value: "",
-			Usage: "The EJSON private key needed to decrypt the file",
-		},
 	}
 	app.Usage = "manage encrypted secrets using public key encryption"
 	app.Version = VERSION
@@ -70,9 +66,22 @@ func main() {
 					Name:  "o",
 					Usage: "print output to the provided file, rather than stdout",
 				},
+				cli.BoolTFlag{
+					Name:  "key-from-stdin",
+					Usage: "Read the private key from STDIN",
+				},
 			},
 			Action: func(c *cli.Context) {
-				if err := decryptAction(c.Args(), c.GlobalString("keydir"), c.GlobalString("private-key"), c.String("o")); err != nil {
+				var userSuppliedPrivateKey string
+				if c.Bool("key-from-stdin") {
+					stdinContent, err := ioutil.ReadAll(os.Stdin)
+					if err != nil {
+						fmt.Println("Failed to read from stdin:", err)
+						os.Exit(1)
+					}
+					userSuppliedPrivateKey = string(stdinContent)
+				}
+				if err := decryptAction(c.Args(), c.GlobalString("keydir"), userSuppliedPrivateKey, c.String("o")); err != nil {
 					fmt.Println("Decryption failed:", err)
 					os.Exit(1)
 				}
