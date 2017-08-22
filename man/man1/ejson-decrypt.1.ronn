@@ -3,7 +3,7 @@ ejson-decrypt(1) -- Decrypt an ejson file
 
 ## SYNOPSIS
 
-`ejson decrypt` [-o `<output file>`] FILE
+`ejson decrypt` [--key-from-stdin] [-o `<output file>`] FILE
 
 ## DESCRIPTION
 
@@ -15,6 +15,8 @@ be present in the keydir. See ejson(1) for instructions on changing the keydir.
 
   * `--out` FILE, `-o` FILE:
     If given, write the decrypted file to FILE rather than stdout.
+  * `--key-from-stdin`:
+    Read the private key from stdin.
 
 
 ## SEE ALSO

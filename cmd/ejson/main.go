@@ -2,9 +2,11 @@ package main
 
 import (
 	"fmt"
+	"io/ioutil"
 	"os"
 	"runtime"
 	"syscall"
+	"strings"
 
 	"github.com/codegangsta/cli"
 )
@@ -65,9 +67,22 @@ func main() {
 					Name:  "o",
 					Usage: "print output to the provided file, rather than stdout",
 				},
+				cli.BoolFlag{
+					Name:  "key-from-stdin",
+					Usage: "Read the private key from STDIN",
+				},
 			},
 			Action: func(c *cli.Context) {
-				if err := decryptAction(c.Args(), c.GlobalString("keydir"), c.String("o")); err != nil {
+				var userSuppliedPrivateKey string
+				if c.Bool("key-from-stdin") {
+					stdinContent, err := ioutil.ReadAll(os.Stdin)
+					if err != nil {
+						fmt.Println("Failed to read from stdin:", err)
+						os.Exit(1)
+					}
+					userSuppliedPrivateKey = strings.TrimSpace(string(stdinContent))
+				}
+				if err := decryptAction(c.Args(), c.GlobalString("keydir"), userSuppliedPrivateKey, c.String("o")); err != nil {
 					fmt.Println("Decryption failed:", err)
 					os.Exit(1)
 				}
