@@ -2,10 +2,9 @@ name: ejson
 
 up:
   - homebrew:
-      - gnu-tar
       - glide
   - ruby: 2.3.3
-  - go: 1.7.1
+  - go: 1.8.3
   - bundler
   - custom:
       name: Install vendored dependencies
@@ -13,13 +12,5 @@ up:
       meet: glide install
 
 commands:
-  build:
-    run: make
-    desc: 'build release artifacts'
-  test:
-    run: go test
-    desc: 'run unit tests'
-
-packages:
-  - git@github.com:Shopify/dev-shopify.git
-
+  build: make
+  test: go test

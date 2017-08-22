@@ -26,9 +26,9 @@ build/man/%.gz: man/%.ronn
 	$(BUNDLE_EXEC) ronn -r --pipe "$<" | gzip > "$@"
 
 build/bin/linux-amd64: $(GOFILES) cmd/$(NAME)/version.go
-	GOPATH=$(GODEP_PATH):$$GOPATH gox -osarch="linux/amd64" -output="$@" "$(PACKAGE)/cmd/$(NAME)"
+	GOPATH=$(GODEP_PATH):$$GOPATH GOOS=linux GOARCH=amd64 go build -o "$@" "$(PACKAGE)/cmd/$(NAME)"
 build/bin/darwin-amd64: $(GOFILES) cmd/$(NAME)/version.go
-	GOPATH=$(GODEP_PATH):$$GOPATH gox -osarch="darwin/amd64" -output="$@" "$(PACKAGE)/cmd/$(NAME)"
+	GOPATH=$(GODEP_PATH):$$GOPATH GOOS=darwin GOARCH=amd64 go build -o "$@" "$(PACKAGE)/cmd/$(NAME)"
 
 $(GEM): rubygem/$(NAME)-$(VERSION).gem
 	mkdir -p $(@D)
@@ -65,6 +65,7 @@ rubygem/lib/$(NAME)/version.rb: VERSION
 
 $(DEB): build/bin/linux-amd64 man
 	mkdir -p $(@D)
+	rm -f "$@"
 	$(BUNDLE_EXEC) fpm \
 		-t deb \
 		-s dir \
@@ -84,9 +85,3 @@ $(DEB): build/bin/linux-amd64 man
 
 clean:
 	rm -rf build pkg rubygem/{LICENSE.txt,lib/ejson/version.rb,build,*.gem}
-
-dev_bootstrap:
-	go get ./...
-	go get github.com/mitchellh/gox
-	gox -build-toolchain -osarch="linux/amd64" -osarch="darwin/amd64"
-	bundle install
