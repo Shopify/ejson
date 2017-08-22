@@ -66,7 +66,7 @@ func main() {
 					Name:  "o",
 					Usage: "print output to the provided file, rather than stdout",
 				},
-				cli.BoolTFlag{
+				cli.BoolFlag{
 					Name:  "key-from-stdin",
 					Usage: "Read the private key from STDIN",
 				},
