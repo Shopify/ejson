@@ -6,6 +6,7 @@ import (
 	"os"
 	"runtime"
 	"syscall"
+	"strings"
 
 	"github.com/codegangsta/cli"
 )
@@ -79,7 +80,7 @@ func main() {
 						fmt.Println("Failed to read from stdin:", err)
 						os.Exit(1)
 					}
-					userSuppliedPrivateKey = string(stdinContent)
+					userSuppliedPrivateKey = strings.TrimSpace(string(stdinContent))
 				}
 				if err := decryptAction(c.Args(), c.GlobalString("keydir"), userSuppliedPrivateKey, c.String("o")); err != nil {
 					fmt.Println("Decryption failed:", err)
