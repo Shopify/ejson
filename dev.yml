@@ -13,4 +13,4 @@ up:
 
 commands:
   build: make
-  test: go test
+  test: go test $(glide nv)
