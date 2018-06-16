@@ -11,8 +11,8 @@
 package json
 
 import (
-	"fmt"
 	"bytes"
+	"fmt"
 
 	"github.com/dustin/gojson"
 )
