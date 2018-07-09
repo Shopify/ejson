@@ -1,0 +1,98 @@
+ejson2env(1) -- extract environment variables from an ejson file
+===========================================================================
+
+## SYNOPSIS
+
+`ejson2env` [`--keydir` <path>] <filename>
+
+## DESCRIPTION
+
+`ejson2env` is a utility for extracting environment variables from ejson
+files.
+
+See ejson(5) for more information on the `ejson` file format, and read on for a
+workflow example.
+
+## OPTIONS
+
+  * `--keydir`=<path>:
+    Path to directory containing private keys. Defaults to `/opt/ejson/keys`.
+    Setting `EJSON_KEYDIR` will also set this value, with lower precedence.
+
+  * `--key-from-stdin`:
+    If set, assumes that the key that decrypts the passed ejson file was 
+    passed in on standard input.
+
+## WORKFLOW
+
+### 1: Add environment variables to an ejson file
+
+If you do not have an existing ejson file, ejson(1) describes how to create
+private and public keys and create the initial ejson file.
+
+To add the environment variables, add a new key called "environment" at the 
+top level of the ejson file. 
+
+For example, adding a `DB_PASSWORD` environment variable would require 
+creating an `environment` object, with a `DB_PASSWORD` key value pair:
+
+```
+{
+  "_public_key": "<key>",
+  "environment": {
+    "DB_PASSWORD": "1234password"
+  }
+}
+```
+
+### 4: Encrypt the file
+
+Running `ejson encrypt` will then encrypt the contents of the `environment`
+object, as it does for other variables. 
+
+For example, running `ejson encrypt` against our example would generate 
+something similar to:
+
+```
+{
+  "_public_key": "<key>",
+  "environment": {
+    "DB_PASSWORD": "EJ[1:OrYT5AaCMOtskq44s2rIzZnoeWW9y5ciYEiV8FWAORc=:vlYfnSz0wuGHKXZ1yFqVnFP5PYrTNyMs:UR5ZeX7BnDWeoAjiy1Rp/nTDWsmmYtJrWmI=]"
+  }
+}
+```
+
+### 5: Export the environment variables
+
+`ejson2env` <filename> will write the export commands to standard output. 
+
+The following output would be generated for our example:
+
+```
+export DB_PASSWORD=1234password
+``` 
+
+You can then export them to the shell environment by calling the command
+surrounded by backticks. 
+
+For example:
+
+```
+#!/bin/sh
+
+`ejson2env /config/secrets.production.ejson`
+
+echo $DB_PASSWORD
+```
+
+## BUGS
+
+Please file bugs at https://github.com/Shopify/ejson
+
+## COPYRIGHT
+
+ejson2env is copyright (C) 2018 Shopify under MIT license.
+
+## SEE ALSO
+
+ejson(5) ejson-encrypt(1) ejson-decrypt(1) ejson-keygen(1)
