@@ -49,14 +49,14 @@ func TestInvalidEnvironments(t *testing.T) {
 	_, err := ExtractEnv(testBad)
 	if nil == err {
 		t.Errorf("no error when passed a non-map environment")
-	} else if errEnvNotMap != err.Error() {
+	} else if errEnvNotMap != err {
 		t.Errorf("wrong error when passed a non-map environment: %s", err)
 	}
 
 	_, err = ExtractEnv(testNoEnv)
 	if nil == err {
 		t.Errorf("no error when passed a non-existiant environment")
-	} else if errNoEnv != err.Error() {
+	} else if errNoEnv != err {
 		t.Errorf("wrong error when passed a non-existiant environment: %s", err)
 	}
 

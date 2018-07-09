@@ -8,8 +8,8 @@ import (
 
 // readKey reads the contents of the passed reader, and
 // strips any preceding or ending whitespace.
-func readKey(reader io.Reader) (string, error) {
-	b, err := ioutil.ReadAll(reader)
+func readKey(r io.Reader) (string, error) {
+	b, err := ioutil.ReadAll(r)
 	if nil != err {
 		return "", err
 	}

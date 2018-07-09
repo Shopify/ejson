@@ -1,38 +1,35 @@
 package main
 
 import (
+	"errors"
 	"fmt"
 	"io"
 )
 
-const (
-	errNoEnv     = "environment is not set in ejson"
-	errEnvNotMap = "environment is not a map[string]interface{}"
-)
+var errNoEnv = errors.New("environment is not set in ejson")
+var errEnvNotMap = errors.New("environment is not a map[string]interface{}")
 
 // ExtractEnv extracts the environment values from the map[string]interface{}
 // containing all secrets, and returns a map[string]string containing the
 // key value pairs. If there's an issue (the environment key doesn't exist, for
 // example), returns an error.
 func ExtractEnv(secrets map[string]interface{}) (map[string]string, error) {
-	if nil == secrets["environment"] {
-		err := fmt.Errorf(errNoEnv)
-		return map[string]string{}, err
+	rawEnv, ok := secrets["environment"]
+	if !ok {
+		return nil, errNoEnv
 	}
 
-	rawEnv, isMap := secrets["environment"].(map[string]interface{})
-	if !isMap {
-		err := fmt.Errorf(errEnvNotMap)
-		return map[string]string{}, err
+	envMap, ok := rawEnv.(map[string]interface{})
+	if !ok {
+		return nil, errEnvNotMap
 	}
 
-	envSecrets := make(map[string]string, len(rawEnv))
+	envSecrets := make(map[string]string, len(envMap))
 
-	for key, rawValue := range rawEnv {
-		value, isString := rawValue.(string)
+	for key, rawValue := range envMap {
 
 		// Only export values that convert to strings properly.
-		if isString {
+		if value, ok := rawValue.(string); ok {
 			envSecrets[key] = value
 		}
 	}
@@ -42,8 +39,8 @@ func ExtractEnv(secrets map[string]interface{}) (map[string]string, error) {
 
 // ExportEnv writes the passed environment values to the passed
 // io.Writer.
-func ExportEnv(output io.Writer, values map[string]string) {
+func ExportEnv(w io.Writer, values map[string]string) {
 	for key, value := range values {
-		fmt.Fprintf(output, "export %s=%s\n", key, value)
+		fmt.Fprintf(w, "export %s=%s\n", key, value)
 	}
 }
