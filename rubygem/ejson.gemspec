@@ -14,7 +14,7 @@ Gem::Specification.new do |spec|
   spec.license       = "MIT"
 
   spec.files         = files
-  spec.executables   = ["ejson"]
+  spec.executables   = ["ejson", "ejson2env"]
   spec.test_files    = []
   spec.require_paths = ["lib"]
 end
