@@ -77,7 +77,7 @@ $(DEB): build/bin/linux-amd64 man
 		--no-depends \
 		--no-auto-depends \
 		--architecture=amd64 \
-		--maintainer="Burke Libbey <burke.libbey@shopify.com>" \
+		--maintainer="Shopify <admins@shopify.com>" \
 		--description="utility for managing a collection of secrets in source control. Secrets are encrypted using public key, elliptic curve cryptography." \
 		--url="https://github.com/Shopify/ejson" \
 		./build/man/=/usr/share/man/ \
