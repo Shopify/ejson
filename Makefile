@@ -23,12 +23,12 @@ man: $(MANFILES)
 
 build/man/%.gz: man/%.ronn
 	mkdir -p "$(@D)"
-	$(BUNDLE_EXEC) ronn -r --pipe "$<" | gzip > "$@"
+	set -euo pipefail ; $(BUNDLE_EXEC) ronn -r --pipe "$<" | gzip > "$@" || (rm -f "$<" ; false)
 
 build/bin/linux-amd64: $(GOFILES) cmd/$(NAME)/version.go
-	GOPATH=$(GODEP_PATH):$$GOPATH GOOS=linux GOARCH=amd64 go build -o "$@" "$(PACKAGE)/cmd/$(NAME)"
+	GOOS=linux GOARCH=amd64 go build -o "$@" "$(PACKAGE)/cmd/$(NAME)"
 build/bin/darwin-amd64: $(GOFILES) cmd/$(NAME)/version.go
-	GOPATH=$(GODEP_PATH):$$GOPATH GOOS=darwin GOARCH=amd64 go build -o "$@" "$(PACKAGE)/cmd/$(NAME)"
+	GOOS=darwin GOARCH=amd64 go build -o "$@" "$(PACKAGE)/cmd/$(NAME)"
 
 $(GEM): rubygem/$(NAME)-$(VERSION).gem
 	mkdir -p $(@D)
@@ -77,7 +77,7 @@ $(DEB): build/bin/linux-amd64 man
 		--no-depends \
 		--no-auto-depends \
 		--architecture=amd64 \
-		--maintainer="Burke Libbey <burke.libbey@shopify.com>" \
+		--maintainer="Shopify <admins@shopify.com>" \
 		--description="utility for managing a collection of secrets in source control. Secrets are encrypted using public key, elliptic curve cryptography." \
 		--url="https://github.com/Shopify/ejson" \
 		./build/man/=/usr/share/man/ \

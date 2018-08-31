@@ -6,8 +6,8 @@ files = File.read("MANIFEST").lines.map(&:chomp)
 Gem::Specification.new do |spec|
   spec.name          = "ejson"
   spec.version       = EJSON::VERSION
-  spec.authors       = ["Burke Libbey"]
-  spec.email         = ["burke.libbey@shopify.com"]
+  spec.authors       = ["Shopify"]
+  spec.email         = ["admins@shopify.com"]
   spec.summary       = %q{Asymmetric keywise encryption for JSON}
   spec.description   = %q{Secret management by encrypting values in a JSON hash with a public/private keypair}
   spec.homepage      = "https://github.com/Shopify/ejson"

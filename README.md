@@ -26,6 +26,9 @@ The main benefits provided by `ejson` are:
 
 See [the manpages](https://shopify.github.io/ejson) for more technical documentation.
 
+See [ejson2env](https://github.com/Shopify/ejson2env) for a useful tool to help with exporting
+a portion of secrets as environment variables for environments/tools that require this pattern.
+
 ## Installation
 
 You can download the `.deb` package from [Github Releases](https://github.com/Shopify/ejson/releases).
