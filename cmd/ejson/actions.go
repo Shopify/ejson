@@ -17,7 +17,7 @@ func encryptAction(args []string) error {
 		if err != nil {
 			return err
 		}
-		fmt.Fprint(os.Stderr, "Wrote %d bytes to %s.\n", n, filePath)
+		fmt.Printf("Wrote %d bytes to %s.\n", n, filePath)
 	}
 	return nil
 }
@@ -58,7 +58,7 @@ func keygenAction(args []string, keydir string, wFlag bool) error {
 		}
 		fmt.Println(pub)
 	} else {
-		fmt.Fprintf(os.Stderr, "Public Key:\n%s\nPrivate Key:\n%s\n", pub, priv)
+		fmt.Printf("Public Key:\n%s\nPrivate Key:\n%s\n", pub, priv)
 	}
 	return nil
 }
