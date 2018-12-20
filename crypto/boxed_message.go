@@ -7,7 +7,7 @@ import (
 	"strconv"
 )
 
-var messageParser = regexp.MustCompile("\\AEJ\\[(\\d):([A-Za-z0-9+=/]{44}):([A-Za-z0-9+=/]{32}):(.+)\\]\\z")
+var messageParser = regexp.MustCompile("\\AEJ\\[(0|(\\d):([A-Za-z0-9+=/]{44}):([A-Za-z0-9+=/]{32})):(.+)\\]\\z")
 
 // boxedMessage dumps and loads the wire format for encrypted messages. The
 // schema is fairly simple:
@@ -41,8 +41,13 @@ func (b *boxedMessage) Dump() []byte {
 	nonce := base64.StdEncoding.EncodeToString(b.Nonce[:])
 	box := base64.StdEncoding.EncodeToString(b.Box)
 
-	str := fmt.Sprintf("EJ[%d:%s:%s:%s]",
-		b.SchemaVersion, pub, nonce, box)
+	var str string
+	if b.SchemaVersion == 0 {
+		str = fmt.Sprintf("EJ[0:%s]", b.Box)
+	} else {
+		str = fmt.Sprintf("EJ[%d:%s:%s:%s]",
+			b.SchemaVersion, pub, nonce, box)
+	}
 	return []byte(str)
 }
 
@@ -56,49 +61,55 @@ func (b *boxedMessage) Load(from []byte) error {
 		return fmt.Errorf("invalid message format")
 	}
 	matches := allMatches[0]
-	if len(matches) != 5 {
+	if len(matches) != 6 {
 		return fmt.Errorf("invalid message format")
 	}
 
-	ssver = matches[1]
-	spub = matches[2]
-	snonce = matches[3]
-	sbox = matches[4]
+	ssver = matches[2]
+	spub = matches[3]
+	snonce = matches[4]
+	sbox = matches[5]
 
-	b.SchemaVersion, err = strconv.Atoi(ssver)
-	if err != nil {
-		return err
-	}
+	// Unencrpyted plaintext or known version schema?
+	if matches[1] == "0" {
+		b.SchemaVersion = 0
+		b.Box = []byte(sbox)
+	} else {
+		b.SchemaVersion, err = strconv.Atoi(ssver)
+		if err != nil {
+			return err
+		}
 
-	pub, err := base64.StdEncoding.DecodeString(spub)
-	if err != nil {
-		return err
-	}
-	pubBytes := []byte(pub)
-	if len(pubBytes) != 32 {
-		return fmt.Errorf("public key invalid")
-	}
-	var public [32]byte
-	copy(public[:], pubBytes[0:32])
-	b.EncrypterPublic = public
+		pub, err := base64.StdEncoding.DecodeString(spub)
+		if err != nil {
+			return err
+		}
+		pubBytes := []byte(pub)
+		if len(pubBytes) != 32 {
+			return fmt.Errorf("public key invalid")
+		}
+		var public [32]byte
+		copy(public[:], pubBytes[0:32])
+		b.EncrypterPublic = public
 
-	nnc, err := base64.StdEncoding.DecodeString(snonce)
-	if err != nil {
-		return err
-	}
-	nonceBytes := []byte(nnc)
-	if len(nonceBytes) != 24 {
-		return fmt.Errorf("nonce invalid")
-	}
-	var nonce [24]byte
-	copy(nonce[:], nonceBytes[0:24])
-	b.Nonce = nonce
+		nnc, err := base64.StdEncoding.DecodeString(snonce)
+		if err != nil {
+			return err
+		}
+		nonceBytes := []byte(nnc)
+		if len(nonceBytes) != 24 {
+			return fmt.Errorf("nonce invalid")
+		}
+		var nonce [24]byte
+		copy(nonce[:], nonceBytes[0:24])
+		b.Nonce = nonce
 
-	box, err := base64.StdEncoding.DecodeString(sbox)
-	if err != nil {
-		return err
-	}
-	b.Box = []byte(box)
+		box, err := base64.StdEncoding.DecodeString(sbox)
+		if err != nil {
+			return err
+		}
+		b.Box = []byte(box)
 
+	}
 	return nil
 }

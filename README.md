@@ -139,6 +139,9 @@ of:
    encrypted, and is useful for implementing metadata schemes.
 6. Underscores do not propagate downward. For example, in `{"_a": {"b": "c"}}`,
    `"c"` will be encrypted.
+7. Values with Version Schema 0 (e.g. `EJ[0:plaintext]`) will also not be
+   encrypted, regardless of the key name. These values are unwrapped on
+   decryption.
 
 ## See also
 

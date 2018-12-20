@@ -136,7 +136,11 @@ func (d *Decrypter) Decrypt(message []byte) ([]byte, error) {
 	if err := bm.Load(message); err != nil {
 		return nil, err
 	}
-	return d.decrypt(&bm)
+	if bm.SchemaVersion == 0 {
+		return bm.Box, nil
+	} else {
+		return d.decrypt(&bm)
+	}
 }
 
 func (d *Decrypter) decrypt(bm *boxedMessage) ([]byte, error) {
