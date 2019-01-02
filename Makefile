@@ -8,8 +8,6 @@ DEB=pkg/$(NAME)_$(VERSION)_amd64.deb
 GOFILES=$(shell find . -type f -name '*.go')
 MANFILES=$(shell find man -name '*.ronn' -exec echo build/{} \; | sed 's/\.ronn/\.gz/')
 
-GODEP_PATH=$(shell pwd)/Godeps/_workspace
-
 BUNDLE_EXEC=bundle exec
 
 .PHONY: default all binaries gem man clean dev_bootstrap
