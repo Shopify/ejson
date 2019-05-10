@@ -1,0 +1,8 @@
+github.com/codegangsta/cli v0.0.0-20141123214656-9908e96513e5 h1:yusLMk8a278LiVcrJRwq8S5Anl5R9HqauOTIfpEqvGc=
+github.com/codegangsta/cli v0.0.0-20141123214656-9908e96513e5/go.mod h1:/qJNoX69yVSKu5o4jLyXAENLRyk1uhi7zkbQ3slBdOA=
+github.com/dustin/gojson v0.0.0-20130803055424-057ac0edc14e h1:6sSV6EV1MwaHjQwpyC1ZK/f1gZJ51k9E0AcCp1wHVWQ=
+github.com/dustin/gojson v0.0.0-20130803055424-057ac0edc14e/go.mod h1:mPKfmRa823oBIgl2r20LeMSpTAteW5j7FLkc0vjmzyQ=
+github.com/smartystreets/goconvey v0.0.0-20141010202006-90f2eae17a8b h1:YS0kl27nTXgpQOlQJqkqt/mvj4LxlzZqbu4lqzQ/h+U=
+github.com/smartystreets/goconvey v0.0.0-20141010202006-90f2eae17a8b/go.mod h1:XDJAKZRPZ1CvBcN2aX5YOUTYGHki24fSF0Iv48Ibg0s=
+golang.org/x/crypto v0.0.0-20161025161229-ca7e7f10cb9f h1:ncuMhm5zJcM+VAlAYs8f767hNJwBSLVGHjiEwFZvut8=
+golang.org/x/crypto v0.0.0-20161025161229-ca7e7f10cb9f/go.mod h1:6SG95UA2DQfeDnfUPMdvaQW0Q7yPrPDi9nlGo2tz2b4=
