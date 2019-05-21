@@ -14,29 +14,32 @@ BUNDLE_EXEC=bundle exec
 
 default: all
 all: gem deb
-binaries: build/bin/linux-amd64 build/bin/darwin-amd64
+binaries: build/bin/linux-amd64 build/bin/darwin-amd64 build/bin/freebsd-amd64
 gem: $(GEM)
 deb: $(DEB)
 man: $(MANFILES)
 
 build/man/%.gz: man/%.ronn
 	mkdir -p "$(@D)"
-	set -euo pipefail ; $(BUNDLE_EXEC) ronn -r --pipe "$<" | gzip > "$@" || (rm -f "$<" ; false)
+	bash -c 'set -euo pipefail ; $(BUNDLE_EXEC) ronn -r --pipe "$<" | gzip > "$@" || (rm -f "$<" ; false)'
 
 build/bin/linux-amd64: $(GOFILES) cmd/$(NAME)/version.go
 	GOOS=linux GOARCH=amd64 go build -o "$@" "$(PACKAGE)/cmd/$(NAME)"
 build/bin/darwin-amd64: $(GOFILES) cmd/$(NAME)/version.go
 	GOOS=darwin GOARCH=amd64 go build -o "$@" "$(PACKAGE)/cmd/$(NAME)"
+build/bin/freebsd-amd64: $(GOFILES) cmd/$(NAME)/version.go
+	GOOS=freebsd GOARCH=amd64 go build -o "$@" "$(PACKAGE)/cmd/$(NAME)"
 
 $(GEM): rubygem/$(NAME)-$(VERSION).gem
 	mkdir -p $(@D)
 	mv "$<" "$@"
-	
+
 rubygem/$(NAME)-$(VERSION).gem: \
 	rubygem/lib/$(NAME)/version.rb \
 	rubygem/build/linux-amd64/ejson \
 	rubygem/LICENSE.txt \
 	rubygem/build/darwin-amd64/ejson \
+	rubygem/build/freebsd-amd64/ejson \
 	rubygem/man
 	cd rubygem && gem build ejson.gemspec
 
@@ -50,16 +53,20 @@ rubygem/build/darwin-amd64/ejson: build/bin/darwin-amd64
 	mkdir -p $(@D)
 	cp -a "$<" "$@"
 
+rubygem/build/freebsd-amd64/ejson: build/bin/freebsd-amd64
+	mkdir -p $(@D)
+	cp -a "$<" "$@"
+
 rubygem/build/linux-amd64/ejson: build/bin/linux-amd64
 	mkdir -p $(@D)
 	cp -a "$<" "$@"
 
 cmd/$(NAME)/version.go: VERSION
-	echo 'package main\n\nconst VERSION string = "$(VERSION)"' > $@
+	printf 'package main\n\nconst VERSION string = "$(VERSION)"' > $@
 
 rubygem/lib/$(NAME)/version.rb: VERSION
 	mkdir -p $(@D)
-	echo 'module $(RUBY_MODULE)\n  VERSION = "$(VERSION)"\nend' > $@
+	printf 'module $(RUBY_MODULE)\n  VERSION = "$(VERSION)"\nend' > $@
 
 $(DEB): build/bin/linux-amd64 man
 	mkdir -p $(@D)
