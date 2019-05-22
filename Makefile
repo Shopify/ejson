@@ -66,7 +66,7 @@ cmd/$(NAME)/version.go: VERSION
 
 rubygem/lib/$(NAME)/version.rb: VERSION
 	mkdir -p $(@D)
-	printf 'module $(RUBY_MODULE)\n  VERSION = "$(VERSION)"\nend' > $@
+	printf 'module $(RUBY_MODULE)\n  VERSION = "$(VERSION)"\nend\n' > $@
 
 $(DEB): build/bin/linux-amd64 man
 	mkdir -p $(@D)
