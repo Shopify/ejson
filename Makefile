@@ -62,7 +62,7 @@ rubygem/build/linux-amd64/ejson: build/bin/linux-amd64
 	cp -a "$<" "$@"
 
 cmd/$(NAME)/version.go: VERSION
-	printf 'package main\n\nconst VERSION string = "$(VERSION)"' > $@
+	printf 'package main\n\nconst VERSION string = "$(VERSION)"\n' > $@
 
 rubygem/lib/$(NAME)/version.rb: VERSION
 	mkdir -p $(@D)
