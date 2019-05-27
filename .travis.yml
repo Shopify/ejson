@@ -1,10 +1,18 @@
 language: go
 
+cache:
+  directories:
+    - $GOPATH/pkg/mod
+
+env:
+- GO111MODULE=on
+
 go:
-  - 1.10.x
   - 1.11.x
+  - 1.12.x
 
 script:
+  - go mod download
   - go test -race -coverprofile=coverage.txt -covermode=atomic
   
 after_success:

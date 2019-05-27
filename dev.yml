@@ -2,7 +2,9 @@ name: ejson
 
 up:
   - ruby: 2.6.0
-  - go: 1.11.4
+  - go:
+      version: 1.12.5
+      modules: true
   - bundler
 
 commands:
