@@ -1,5 +1,6 @@
 bin/ejson
 build/darwin-amd64/ejson
+build/freebsd-amd64/ejson
 build/linux-amd64/ejson
 man/man1/ejson.1.gz
 man/man1/ejson-encrypt.1.gz

@@ -143,3 +143,9 @@ of:
 ## See also
 
 * If you use Capistrano for deployment you can use [capistrano-ejson](https://github.com/Shopify/capistrano-ejson) to automatically decrypt the secrets on deploy.
+
+## Building on FreeBSD
+
+Building on FreeBSD requires the GNU tools: `bash`, `gmake` and `gtar`.
+
+You can install them with `pkg install bash gmake gtar`. Then use `gmake` in place of `make`.
