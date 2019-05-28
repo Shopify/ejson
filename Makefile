@@ -11,10 +11,12 @@ MANFILES=$(shell find man -name '*.ronn' -exec echo build/{} \; | sed 's/\.ronn/
 BUNDLE_EXEC=bundle exec
 SHELL=/usr/bin/env bash
 
-.PHONY: default all binaries gem man clean dev_bootstrap
+export GO111MODULE=on
+
+.PHONY: default all binaries gem man clean dev_bootstrap setup
 
 default: all
-all: gem deb
+all: setup gem deb
 binaries: build/bin/linux-amd64 build/bin/darwin-amd64 build/bin/freebsd-amd64
 gem: $(GEM)
 deb: $(DEB)
@@ -88,6 +90,10 @@ $(DEB): build/bin/linux-amd64 man
 		--url="https://github.com/Shopify/ejson" \
 		./build/man/=/usr/share/man/ \
 		./$<=/usr/bin/$(NAME)
+
+setup:
+	go mod download
+	go mod tidy
 
 clean:
 	rm -rf build pkg rubygem/{LICENSE.txt,lib/ejson/version.rb,build,*.gem}
