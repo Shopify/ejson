@@ -2,13 +2,14 @@ package main
 
 import (
 	"fmt"
+	"io"
 	"io/ioutil"
 	"os"
 	"runtime"
 	"strings"
 	"syscall"
 
-	"github.com/codegangsta/cli"
+	"github.com/urfave/cli"
 )
 
 func execManpage(sec, page string) {
@@ -23,7 +24,7 @@ func main() {
 	runtime.GOMAXPROCS(runtime.NumCPU())
 
 	// Rather than using the built-in help printer, display the bundled manpages.
-	cli.HelpPrinter = func(templ string, data interface{}) {
+	cli.HelpPrinter = func(_ io.Writer, templ string, data interface{}) {
 		if cmd, ok := data.(cli.Command); ok {
 			switch cmd.Name {
 			case "encrypt", "decrypt", "keygen":
