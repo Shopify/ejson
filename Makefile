@@ -9,6 +9,7 @@ GOFILES=$(shell find . -type f -name '*.go')
 MANFILES=$(shell find man -name '*.ronn' -exec echo build/{} \; | sed 's/\.ronn/\.gz/')
 
 BUNDLE_EXEC=bundle exec
+SHELL=/usr/bin/env bash
 
 .PHONY: default all binaries gem man clean dev_bootstrap
 
@@ -21,7 +22,7 @@ man: $(MANFILES)
 
 build/man/%.gz: man/%.ronn
 	mkdir -p "$(@D)"
-	bash -c 'set -euo pipefail ; $(BUNDLE_EXEC) ronn -r --pipe "$<" | gzip > "$@" || (rm -f "$<" ; false)'
+	set -euo pipefail ; $(BUNDLE_EXEC) ronn -r --pipe "$<" | gzip > "$@" || (rm -f "$<" ; false)
 
 build/bin/linux-amd64: $(GOFILES) cmd/$(NAME)/version.go
 	GOOS=linux GOARCH=amd64 go build -o "$@" "$(PACKAGE)/cmd/$(NAME)"
@@ -62,11 +63,11 @@ rubygem/build/linux-amd64/ejson: build/bin/linux-amd64
 	cp -a "$<" "$@"
 
 cmd/$(NAME)/version.go: VERSION
-	printf 'package main\n\nconst VERSION string = "$(VERSION)"\n' > $@
+	printf '%b' 'package main\n\nconst VERSION string = "$(VERSION)"\n' > $@
 
 rubygem/lib/$(NAME)/version.rb: VERSION
 	mkdir -p $(@D)
-	printf 'module $(RUBY_MODULE)\n  VERSION = "$(VERSION)"\nend\n' > $@
+	printf '%b' 'module $(RUBY_MODULE)\n  VERSION = "$(VERSION)"\nend\n' > $@
 
 $(DEB): build/bin/linux-amd64 man
 	mkdir -p $(@D)
