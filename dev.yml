@@ -1,6 +1,8 @@
 name: ejson
 
 up:
+  - homebrew:
+    - gnu-tar
   - ruby: 2.6.0
   - go:
       version: 1.12.5
