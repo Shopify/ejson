@@ -143,3 +143,4 @@ of:
 ## See also
 
 * If you use Capistrano for deployment you can use [capistrano-ejson](https://github.com/Shopify/capistrano-ejson) to automatically decrypt the secrets on deploy.
+* If you use [pre-commit](https://pre-commit.com/), you can use it to automatically encrypt secrets on commit.
