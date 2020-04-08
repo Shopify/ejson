@@ -67,7 +67,7 @@ Private Key:
 ```
 
 ```
-$ ./ejson keygen -w
+$ ejson keygen -w
 53393332c6c7c474af603c078f5696c8fe16677a09a711bba299a6c1c1676a59
 $ cat /opt/ejson/keys/5339*
 888a4291bef9135729357b8c70e5a62b0bbe104a679d829cdbe56d46a4481aaf
