@@ -8,6 +8,6 @@ require (
 	github.com/gopherjs/gopherjs v0.0.0-20200217142428-fce0ec30dd00 // indirect
 	github.com/smartystreets/assertions v1.0.1 // indirect
 	github.com/smartystreets/goconvey v1.6.4
-	github.com/urfave/cli v1.22.2
-	golang.org/x/crypto v0.0.0-20200302210943-78000ba7a073
+	github.com/urfave/cli v1.22.4
+	golang.org/x/crypto v0.0.0-20200406173513-056763e48d71
 )

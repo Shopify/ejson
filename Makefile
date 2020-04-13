@@ -49,6 +49,7 @@ rubygem/$(NAME)-$(VERSION).gem: \
 	rubygem/LICENSE.txt \
 	rubygem/build/darwin-amd64/ejson \
 	rubygem/build/freebsd-amd64/ejson \
+	rubygem/build/windows-amd64/ejson.exe \
 	rubygem/man
 	cd rubygem && gem build ejson.gemspec
 
@@ -67,6 +68,10 @@ rubygem/build/freebsd-amd64/ejson: build/bin/freebsd-amd64
 	cp -a "$<" "$@"
 
 rubygem/build/linux-amd64/ejson: build/bin/linux-amd64
+	mkdir -p $(@D)
+	cp -a "$<" "$@"
+
+rubygem/build/windows-amd64/ejson.exe: build/bin/windows-amd64.exe
 	mkdir -p $(@D)
 	cp -a "$<" "$@"
 
