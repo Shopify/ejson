@@ -34,10 +34,10 @@ a portion of secrets as environment variables for environments/tools that requir
 You can download the `.deb` package from [Github Releases](https://github.com/Shopify/ejson/releases).
 
 On development machines (64-bit linux or OS X), the recommended installation
-method is via rubygems:
+method is via Homebrew:
 
 ```
-gem install ejson
+brew install ejson
 ```
 
 ## Workflow
