@@ -3,9 +3,9 @@ name: ejson
 up:
   - homebrew:
     - gnu-tar
-  - ruby: 2.6.0
+  - ruby: 2.7.0
   - go:
-      version: 1.12.5
+      version: 1.14.3
       modules: true
   - bundler
 

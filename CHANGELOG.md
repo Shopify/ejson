@@ -1,3 +1,7 @@
+# 1.2.2
+
+* Bump various dependencies and rebuild releases with a modern Go version
+
 # 1.2.1
 
 * Bugfix: 1.2.0 introduced an issue in informational output formatting (no obvious security impact).
