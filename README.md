@@ -34,7 +34,7 @@ a portion of secrets as environment variables for environments/tools that requir
 You can download the `.deb` package from [Github Releases](https://github.com/Shopify/ejson/releases).
 
 On development machines (64-bit linux or OS X), the recommended installation
-method is via Homebrew:
+method is via Homebrew (after configuring your install of Homebrew to pull from [Shopify's Homebrew repo](https://github.com/shopify/homebrew-shopify)):
 
 ```
 brew install ejson
