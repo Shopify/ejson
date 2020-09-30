@@ -37,6 +37,7 @@ On development machines (64-bit linux or OS X), the recommended installation
 method is via Homebrew:
 
 ```
+brew tap shopify/shopify
 brew install ejson
 ```
 
