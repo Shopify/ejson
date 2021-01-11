@@ -3,7 +3,8 @@ RUBY_MODULE=EJSON
 PACKAGE=github.com/Shopify/ejson
 VERSION=$(shell cat VERSION)
 GEM=pkg/$(NAME)-$(VERSION).gem
-DEB=pkg/$(NAME)_$(VERSION)_amd64.deb
+AMD64_DEB=pkg/$(NAME)_$(VERSION)_amd64.deb
+ARM64_DEB=pkg/$(NAME)_$(VERSION)_arm64.deb
 
 GOFILES=$(shell find . -type f -name '*.go')
 MANFILES=$(shell find man -name '*.ronn' -exec echo build/{} \; | sed 's/\.ronn/\.gz/')
@@ -19,11 +20,12 @@ default: all
 all: setup gem deb
 binaries: \
 	build/bin/linux-amd64 \
+	build/bin/linux-arm64 \
 	build/bin/darwin-amd64 \
 	build/bin/freebsd-amd64 \
 	build/bin/windows-amd64.exe
 gem: $(GEM)
-deb: $(DEB)
+deb: $(AMD64_DEB) $(ARM64_DEB)
 man: $(MANFILES)
 
 build/man/%.gz: man/%.ronn
@@ -32,6 +34,8 @@ build/man/%.gz: man/%.ronn
 
 build/bin/linux-amd64: $(GOFILES) cmd/$(NAME)/version.go
 	GOOS=linux GOARCH=amd64 go build -o "$@" "$(PACKAGE)/cmd/$(NAME)"
+build/bin/linux-arm64: $(GOFILES) cmd/$(NAME)/version.go
+	GOOS=linux GOARCH=arm64 go build -o "$@" "$(PACKAGE)/cmd/$(NAME)"
 build/bin/darwin-amd64: $(GOFILES) cmd/$(NAME)/version.go
 	GOOS=darwin GOARCH=amd64 go build -o "$@" "$(PACKAGE)/cmd/$(NAME)"
 build/bin/freebsd-amd64: $(GOFILES) cmd/$(NAME)/version.go
@@ -45,6 +49,7 @@ $(GEM): rubygem/$(NAME)-$(VERSION).gem
 
 rubygem/$(NAME)-$(VERSION).gem: \
 	rubygem/lib/$(NAME)/version.rb \
+	rubygem/build/linux-amd64/ejson \
 	rubygem/build/linux-amd64/ejson \
 	rubygem/LICENSE.txt \
 	rubygem/build/darwin-amd64/ejson \
@@ -71,6 +76,10 @@ rubygem/build/linux-amd64/ejson: build/bin/linux-amd64
 	mkdir -p $(@D)
 	cp -a "$<" "$@"
 
+rubygem/build/linux-arm64/ejson: build/bin/linux-arm64
+	mkdir -p $(@D)
+	cp -a "$<" "$@"
+
 rubygem/build/windows-amd64/ejson.exe: build/bin/windows-amd64.exe
 	mkdir -p $(@D)
 	cp -a "$<" "$@"
@@ -82,7 +91,7 @@ rubygem/lib/$(NAME)/version.rb: VERSION
 	mkdir -p $(@D)
 	printf '%b' 'module $(RUBY_MODULE)\n  VERSION = "$(VERSION)"\nend\n' > $@
 
-$(DEB): build/bin/linux-amd64 man
+$(AMD64_DEB): build/bin/linux-amd64 man
 	mkdir -p $(@D)
 	rm -f "$@"
 	$(BUNDLE_EXEC) fpm \
@@ -96,6 +105,26 @@ $(DEB): build/bin/linux-amd64 man
 		--no-depends \
 		--no-auto-depends \
 		--architecture=amd64 \
+		--maintainer="Shopify <admins@shopify.com>" \
+		--description="utility for managing a collection of secrets in source control. Secrets are encrypted using public key, elliptic curve cryptography." \
+		--url="https://github.com/Shopify/ejson" \
+		./build/man/=/usr/share/man/ \
+		./$<=/usr/bin/$(NAME)
+
+$(ARM64_DEB): build/bin/linux-arm64 man
+	mkdir -p $(@D)
+	rm -f "$@"
+	$(BUNDLE_EXEC) fpm \
+		-t deb \
+		-s dir \
+		--name="$(NAME)" \
+		--version="$(VERSION)" \
+		--package="$@" \
+		--license=MIT \
+		--category=admin \
+		--no-depends \
+		--no-auto-depends \
+		--architecture=arm64 \
 		--maintainer="Shopify <admins@shopify.com>" \
 		--description="utility for managing a collection of secrets in source control. Secrets are encrypted using public key, elliptic curve cryptography." \
 		--url="https://github.com/Shopify/ejson" \
