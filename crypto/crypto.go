@@ -12,6 +12,7 @@ package crypto
 
 import (
 	"crypto/rand"
+	"crypto/sha512"
 	"errors"
 	"fmt"
 
@@ -101,13 +102,17 @@ func (e *Encrypter) encrypt(message []byte) (*boxedMessage, error) {
 		return nil, err
 	}
 
+	hash := sha512.New()
+	hash.Write(message)
+	identity := hash.Sum(nil)
 	out := box.SealAfterPrecomputation(nil, []byte(message), &nonce, &e.SharedKey)
 
 	return &boxedMessage{
-		SchemaVersion:   1,
+		SchemaVersion:   2,
 		EncrypterPublic: e.Keypair.Public,
 		Nonce:           nonce,
 		Box:             out,
+		Identity:        identity,
 	}, nil
 }
 

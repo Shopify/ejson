@@ -2,30 +2,34 @@ package crypto
 
 import (
 	"encoding/base64"
+	"encoding/hex"
 	"fmt"
 	"regexp"
 	"strconv"
 )
 
-var messageParser = regexp.MustCompile("\\AEJ\\[(\\d):([A-Za-z0-9+=/]{44}):([A-Za-z0-9+=/]{32}):(.+)\\]\\z")
+var messageParser = regexp.MustCompile("\\AEJ\\[(\\d):([A-Za-z0-9+=/]{44}):([A-Za-z0-9+=/]{32}):([A-Za-z0-9+=/]+):?([A-Za-z0-9]{128})?\\]\\z")
 
 // boxedMessage dumps and loads the wire format for encrypted messages. The
 // schema is fairly simple:
 //
 //   "EJ["
-//   SchemaVersion ( "1" )
+//   SchemaVersion ( "1" or "2" )
 //   ":"
 //   EncrypterPublic :: base64-encoded 32-byte key
 //   ":"
 //   Nonce :: base64-encoded 24-byte nonce
 //   ":"
 //   Box :: base64-encoded encrypted message
+//   ":"
+//   Identity :: hex-encoded hash sum identity of the message, if SchemaVersion is 2
 //   "]"
 type boxedMessage struct {
 	SchemaVersion   int
 	EncrypterPublic [32]byte
 	Nonce           [24]byte
 	Box             []byte
+	Identity        []byte
 }
 
 // IsBoxedMessage tests whether a value is formatted using the boxedMessage
@@ -40,9 +44,17 @@ func (b *boxedMessage) Dump() []byte {
 	pub := base64.StdEncoding.EncodeToString(b.EncrypterPublic[:])
 	nonce := base64.StdEncoding.EncodeToString(b.Nonce[:])
 	box := base64.StdEncoding.EncodeToString(b.Box)
+	identity := hex.EncodeToString(b.Identity)
 
-	str := fmt.Sprintf("EJ[%d:%s:%s:%s]",
-		b.SchemaVersion, pub, nonce, box)
+	str := ""
+	switch b.SchemaVersion {
+	case 1:
+		str = fmt.Sprintf("EJ[%d:%s:%s:%s]",
+			b.SchemaVersion, pub, nonce, box)
+	case 2:
+		str = fmt.Sprintf("EJ[%d:%s:%s:%s:%s]",
+			b.SchemaVersion, pub, nonce, box, identity)
+	}
 	return []byte(str)
 }
 
@@ -56,7 +68,7 @@ func (b *boxedMessage) Load(from []byte) error {
 		return fmt.Errorf("invalid message format")
 	}
 	matches := allMatches[0]
-	if len(matches) != 5 {
+	if len(matches) <= 5 {
 		return fmt.Errorf("invalid message format")
 	}
 
