@@ -1,6 +1,7 @@
 package ejson
 
 import (
+	"fmt"
 	"io/ioutil"
 	"os"
 	"path"
@@ -91,6 +92,20 @@ func TestEncryptFileInPlace(t *testing.T) {
 			Convey("should encrypt the file", func() {
 				So(err, ShouldBeNil)
 				match := regexp.MustCompile(`{"_public_key": "8d8.*", "a": "EJ.*"}`)
+				So(match.Find(output), ShouldNotBeNil)
+			})
+		})
+
+		Convey("given complex input", func() {
+			setData(tempFileName, []byte(`{"_public_key": "`+validPubKey+`", "a": "b", "_c": "d", "e": 102, "_g": 104, "_i": {"j": "k", "_l": "m"}, "n": ["o", 112], "_q": ["r"]}`))
+
+			_, err := EncryptFileInPlace(tempFileName)
+			output, err := ioutil.ReadFile(tempFileName)
+			So(err, ShouldBeNil)
+			Convey("should encrypt encrypt values if and only if their key starts with an underscore", func() {
+				So(err, ShouldBeNil)
+				match := regexp.MustCompile(`{"_public_key": "8d8.*", "a": "EJ.*", "_c": "d", "e": "EJ.*", "_g": 104, "_i": {"j": "k", "_l": "m"}, "n": ["EJ.*", "EJ.*"], "_q": ["r"]}`)
+				fmt.Print("\nOutput\n\t", string(output), "\nMust match:\n\t", match, "\n") // TODO: Remove this line!
 				So(match.Find(output), ShouldNotBeNil)
 			})
 		})
@@ -186,5 +201,7 @@ func TestDecryptFile(t *testing.T) {
 				So(string(out), ShouldEqual, `{"_public_key": "`+validPubKey+`", "a": "b"}`)
 			})
 		})
+
+		// TODO: Add a test to decrypt the complex encrypted values?
 	})
 }
