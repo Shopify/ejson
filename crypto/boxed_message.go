@@ -8,7 +8,7 @@ import (
 	"strconv"
 )
 
-var messageParser = regexp.MustCompile("\\AEJ\\[(\\d):([A-Za-z0-9+=/]{44}):([A-Za-z0-9+=/]{32}):([A-Za-z0-9+=/]+):?([A-Za-z0-9]{128})?\\]\\z")
+var messageParser = regexp.MustCompile("\\AEJ\\[(\\d):([A-Za-z0-9+=/]{44}):([A-Za-z0-9+=/]{32}):([A-Za-z0-9+=/]+):?([A-Za-z0-9]{64})?\\]\\z")
 
 // boxedMessage dumps and loads the wire format for encrypted messages. The
 // schema is fairly simple:
