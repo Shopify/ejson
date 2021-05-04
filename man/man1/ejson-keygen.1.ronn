@@ -21,4 +21,4 @@ decrypting system(s).
 
 ## SEE ALSO
 
-ejson(1) ejson(5) ejson-encrypt(1) ejson-decrypt(1)
+ejson(1) ejson(5) ejson-encrypt(1) ejson-decrypt(1) ejson-identify(1)

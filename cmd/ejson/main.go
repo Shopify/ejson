@@ -29,7 +29,7 @@ func main() {
 
 			if cmd, ok := data.(cli.Command); ok {
 				switch cmd.Name {
-				case "encrypt", "decrypt", "keygen":
+				case "encrypt", "decrypt", "keygen", "identify":
 					execManpage("1", "ejson-"+cmd.Name)
 				}
 			}
@@ -105,6 +105,34 @@ func main() {
 			Action: func(c *cli.Context) {
 				if err := keygenAction(c.Args(), c.GlobalString("keydir"), c.Bool("write")); err != nil {
 					fmt.Fprintln(os.Stderr, "Key generation failed:", err)
+					os.Exit(1)
+				}
+			},
+		},
+		{
+			Name:      "identify",
+			ShortName: "i",
+			Usage:     "display the given secrets identity string",
+			Flags: []cli.Flag{
+				cli.StringFlag{
+					Name:  "secret",
+					Usage: "read the secret from command line argument, not from STDIN",
+				},
+			},
+			Action: func(c *cli.Context) {
+				secretToIdentify := ""
+				if c.String("secret") != "" {
+					secretToIdentify = c.String("secret")
+				} else {
+					stdinContent, err := ioutil.ReadAll(os.Stdin)
+					if err != nil {
+						fmt.Fprintln(os.Stderr, "Failed to read from stdin:", err)
+						os.Exit(1)
+					}
+					secretToIdentify = strings.TrimSpace(string(stdinContent))
+				}
+				if err := secretIdentityAction(secretToIdentify); err != nil {
+					fmt.Fprintln(os.Stderr, "Secret identity generation failed:", err)
 					os.Exit(1)
 				}
 			},

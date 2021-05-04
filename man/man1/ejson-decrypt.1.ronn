@@ -21,4 +21,4 @@ be present in the keydir. See ejson(1) for instructions on changing the keydir.
 
 ## SEE ALSO
 
-ejson(1) ejson(5) ejson-encrypt(1) ejson-keygen(1)
+ejson(1) ejson(5) ejson-encrypt(1) ejson-keygen(1) ejson-identify(1)

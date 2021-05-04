@@ -33,6 +33,9 @@ workflow example.
   * `ejson keygen` ejson-keygen(1):
     Generate an ejson keypair (alias: `ejson g`)
 
+  * `ejson identify` ejson-identify(1):
+    Display the ejson identification string for a given secret (alias: `ejson i`)
+
 ## WORKFLOW
 
 ### 1: Create the Keydir

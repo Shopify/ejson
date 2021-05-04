@@ -102,7 +102,7 @@ func (e *Encrypter) encrypt(message []byte) (*boxedMessage, error) {
 		return nil, err
 	}
 
-	identity, err := scrypt.Key(message, []byte("ejson"), 1<<15, 8, 1, 32)
+	identity, err := SecretIdentity(message)
 	if err != nil {
 		return nil, err
 	}
@@ -164,4 +164,8 @@ func genNonce() (nonce [24]byte, err error) {
 		err = fmt.Errorf("not enough bytes returned from rand.Reader")
 	}
 	return
+}
+
+func SecretIdentity(message []byte) ([]byte, error) {
+	return scrypt.Key(message, []byte("ejson"), 1<<15, 8, 1, 32)
 }
