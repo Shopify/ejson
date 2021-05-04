@@ -53,10 +53,10 @@ example, the password in this excerpt `will` be encrypted.
 ## SECRET SCHEMA
 
 When a value is encrypted, it will be replaced by a relatively long string of
-the form `"EJ[V:P:N:M]"`. The fields are:
+the form `"EJ[V:P:N:M:I]"`. The fields are:
 
   * `V` (decimal-as-string int):
-    Schema Version, hard-coded to "1" for now
+    Schema Version, currently uses "2", previously it was hard-coded to "1"
 
   * `P` (base64-encoded 32-byte array):
     Public key of an ephemeral keypair used to encrypt this key
@@ -67,6 +67,9 @@ the form `"EJ[V:P:N:M]"`. The fields are:
   * `M` (base64-encoded variable-length array):
     Raw ciphertext
 
+  * `I` (hex-encoded 32-byte array):
+    Secret identification string
+
 ## SEE ALSO
 
-ejson(1) ejson-encrypt(1) ejson-decrypt(1) ejson-keygen(1)
+ejson(1) ejson-encrypt(1) ejson-decrypt(1) ejson-keygen(1) ejson-indentify(1)
