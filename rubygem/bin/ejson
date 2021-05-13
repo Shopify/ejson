@@ -2,9 +2,10 @@
 platform = `uname -sm`
 
 dir = case platform
-      when /^Darwin/      ; "darwin-amd64"
-      when /^Linux.*64/   ; "linux-amd64"
-      when /^FreeBSD.*64/ ; "freebsd-amd64"
+      when /^Darwin\sarm64/      ; "darwin-arm64"
+      when /^Darwin/             ; "darwin-amd64"
+      when /^Linux.*64/          ; "linux-amd64"
+      when /^FreeBSD.*64/        ; "freebsd-amd64"
       else
         abort "Ejson is not supported on your platform."
       end
