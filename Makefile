@@ -22,6 +22,7 @@ binaries: \
 	build/bin/linux-amd64 \
 	build/bin/linux-arm64 \
 	build/bin/darwin-amd64 \
+	build/bin/darwin-arm64 \
 	build/bin/freebsd-amd64 \
 	build/bin/windows-amd64.exe
 gem: $(GEM)
@@ -38,6 +39,8 @@ build/bin/linux-arm64: $(GOFILES) cmd/$(NAME)/version.go
 	GOOS=linux GOARCH=arm64 go build -o "$@" "$(PACKAGE)/cmd/$(NAME)"
 build/bin/darwin-amd64: $(GOFILES) cmd/$(NAME)/version.go
 	GOOS=darwin GOARCH=amd64 go build -o "$@" "$(PACKAGE)/cmd/$(NAME)"
+build/bin/darwin-arm64: $(GOFILES) cmd/$(NAME)/version.go
+	GOOS=darwin GOARCH=arm64 go build -o "$@" "$(PACKAGE)/cmd/$(NAME)"
 build/bin/freebsd-amd64: $(GOFILES) cmd/$(NAME)/version.go
 	GOOS=freebsd GOARCH=amd64 go build -o "$@" "$(PACKAGE)/cmd/$(NAME)"
 build/bin/windows-amd64.exe: $(GOFILES) cmd/$(NAME)/version.go
@@ -53,6 +56,7 @@ rubygem/$(NAME)-$(VERSION).gem: \
 	rubygem/build/linux-amd64/ejson \
 	rubygem/LICENSE.txt \
 	rubygem/build/darwin-amd64/ejson \
+	rubygem/build/darwin-arm64/ejson \
 	rubygem/build/freebsd-amd64/ejson \
 	rubygem/build/windows-amd64/ejson.exe \
 	rubygem/man
@@ -65,6 +69,10 @@ rubygem/man: man
 	cp -a build/man $@
 
 rubygem/build/darwin-amd64/ejson: build/bin/darwin-amd64
+	mkdir -p $(@D)
+	cp -a "$<" "$@"
+
+rubygem/build/darwin-arm64/ejson: build/bin/darwin-arm64
 	mkdir -p $(@D)
 	cp -a "$<" "$@"
 
