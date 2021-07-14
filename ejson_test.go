@@ -186,5 +186,14 @@ func TestDecryptFile(t *testing.T) {
 				So(string(out), ShouldEqual, `{"_public_key": "`+validPubKey+`", "a": "b"}`)
 			})
 		})
+
+		Convey("called with just an unencrypted value", func() {
+			setData(tempFileName, []byte(`{"_public_key": "`+validPubKey+`", "a": "EJ[0:b]"}`))
+			out, err := DecryptFile(tempFileName, tempDir, "")
+			Convey("should succeed and unwrap the plaintext", func() {
+				So(err, ShouldBeNil)
+				So(string(out), ShouldEqual, `{"_public_key": "`+validPubKey+`", "a": "b"}`)
+			})
+		})
 	})
 }

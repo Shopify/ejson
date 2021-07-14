@@ -50,6 +50,9 @@ example, the password in this excerpt `will` be encrypted.
 }
 ```
 
+See below on how to keep values unencrypted when you can't control the variable
+name.
+
 ## SECRET SCHEMA
 
 When a value is encrypted, it will be replaced by a relatively long string of
@@ -66,6 +69,11 @@ the form `"EJ[V:P:N:M]"`. The fields are:
 
   * `M` (base64-encoded variable-length array):
     Raw ciphertext
+
+The special Schema Verison "0" allows values to stay unencrypted even if the
+variable name does not start with an underscore. This means, value of
+"EJ[0:notsecret" will not be encrypted, and only unwrapped to "notsecret" on
+decryption.
 
 ## SEE ALSO
 
