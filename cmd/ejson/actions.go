@@ -6,6 +6,7 @@ import (
 	"os"
 
 	"github.com/Shopify/ejson"
+	"github.com/Shopify/ejson/crypto"
 )
 
 func encryptAction(args []string) error {
@@ -60,6 +61,15 @@ func keygenAction(args []string, keydir string, wFlag bool) error {
 	} else {
 		fmt.Printf("Public Key:\n%s\nPrivate Key:\n%s\n", pub, priv)
 	}
+	return nil
+}
+
+func secretIdentityAction(secret string) error {
+	identity, err := crypto.SecretIdentity([]byte(secret))
+	if err != nil {
+		return err
+	}
+	fmt.Println(fmt.Sprintf("%x", identity))
 	return nil
 }
 

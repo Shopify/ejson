@@ -12,4 +12,4 @@ encrypted and the files will be overwritten in place.
 
 ## SEE ALSO
 
-ejson(1) ejson(5) ejson-decrypt(1) ejson-keygen(1)
+ejson(1) ejson(5) ejson-decrypt(1) ejson-keygen(1) ejson-identify(1)
