@@ -23,20 +23,6 @@ func main() {
 	// Encryption is expensive. We'd rather burn cycles on many cores than wait.
 	runtime.GOMAXPROCS(runtime.NumCPU())
 
-	if runtime.GOOS != "windows" {
-		// Rather than using the built-in help printer, display the bundled manpages.
-		cli.HelpPrinter = func(w io.Writer, templ string, data interface{}) {
-
-			if cmd, ok := data.(cli.Command); ok {
-				switch cmd.Name {
-				case "encrypt", "decrypt", "keygen":
-					execManpage("1", "ejson-"+cmd.Name)
-				}
-			}
-			execManpage("1", "ejson")
-		}
-	}
-
 	app := cli.NewApp()
 	app.Flags = []cli.Flag{
 		cli.StringFlag{
