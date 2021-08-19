@@ -52,6 +52,12 @@ setting `EJSON_KEYDIR` or passing the `-keydir` option.
 $ mkdir -p /opt/ejson/keys
 ```
 
+> *For Mac OS users.* By default you won't have write permissions to `/opt/ejson` folder. Make sure to run the following command to grant these permissions:
+
+```bash
+sudo chown -R $(whoami) /opt/ejson
+```
+
 ### 2: Generate a keypair
 
 When called with `-w`, `ejson keygen` will write the keypair into the `keydir`
