@@ -9,6 +9,6 @@ require (
 	github.com/smartystreets/assertions v1.0.1 // indirect
 	github.com/smartystreets/goconvey v1.6.4
 	github.com/urfave/cli v1.22.4
-	golang.org/x/crypto v0.0.0-20200604202706-70a84ac30bf9
+	golang.org/x/crypto v0.0.0-20201216223049-8b5274cf687f
 	golang.org/x/sys v0.0.0-20200615200032-f1bc736245b1 // indirect
 )
