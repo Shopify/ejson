@@ -3,6 +3,7 @@ build/darwin-amd64/ejson
 build/darwin-arm64/ejson
 build/freebsd-amd64/ejson
 build/linux-amd64/ejson
+build/linux-arm64/ejson
 man/man1/ejson.1.gz
 man/man1/ejson-encrypt.1.gz
 man/man1/ejson-decrypt.1.gz

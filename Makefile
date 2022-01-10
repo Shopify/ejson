@@ -53,7 +53,7 @@ $(GEM): rubygem/$(NAME)-$(VERSION).gem
 rubygem/$(NAME)-$(VERSION).gem: \
 	rubygem/lib/$(NAME)/version.rb \
 	rubygem/build/linux-amd64/ejson \
-	rubygem/build/linux-amd64/ejson \
+	rubygem/build/linux-arm64/ejson \
 	rubygem/LICENSE.txt \
 	rubygem/build/darwin-amd64/ejson \
 	rubygem/build/darwin-arm64/ejson \
