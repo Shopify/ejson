@@ -1,3 +1,7 @@
+# 1.3.1
+
+* Fix rubygems build for arm64.
+
 # 1.2.2
 
 * Bump various dependencies and rebuild releases with a modern Go version
