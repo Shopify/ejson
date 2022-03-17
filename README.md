@@ -99,7 +99,7 @@ Create this file as `test.ejson`:
 ### 4: Encrypt the file
 
 Running `ejson encrypt test.ejson` will encrypt any new plaintext keys in the
-file and leave any existing encrypted keys or keys with property names prefixes with `_` untouched:
+file and leave any existing encrypted keys or keys with property names prefixed with `_` untouched:
 
 ```json
 {
