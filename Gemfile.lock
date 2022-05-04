@@ -17,7 +17,7 @@ GEM
       pleaserun (~> 0.0.29)
       rexml
       stud
-    git (1.9.1)
+    git (1.11.0)
       rchardet (~> 1.8)
     hpricot (0.8.6)
     insist (1.0.0)
