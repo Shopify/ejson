@@ -3,8 +3,7 @@ GEM
   specs:
     addressable (2.8.1)
       public_suffix (>= 2.0.2, < 6.0)
-    arr-pm (0.0.11)
-      cabin (> 0)
+    arr-pm (0.0.12)
     backports (3.21.0)
     cabin (0.9.0)
     clamp (1.0.1)
