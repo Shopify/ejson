@@ -12,9 +12,17 @@ func TestWalker(t *testing.T) {
 	}
 
 	Convey("Walker passes the provided test-cases", t, func() {
-		for _, tc := range testCases {
+		for _, tc := range walkTestCases {
 			walker := Walker{Action: action}
 			act, err := walker.Walk([]byte(tc.in))
+			So(err, ShouldBeNil)
+			So(string(act), ShouldEqual, tc.out)
+		}
+	})
+
+	Convey("CollapseMultilineStringLiterals passes the provided test-cases", t, func() {
+		for _, tc := range collapseTestCases {
+			act, err := CollapseMultilineStringLiterals([]byte(tc.in))
 			So(err, ShouldBeNil)
 			So(string(act), ShouldEqual, tc.out)
 		}
@@ -26,7 +34,7 @@ type testCase struct {
 }
 
 // "E" means encrypted.
-var testCases = []testCase{
+var walkTestCases = []testCase{
 	{`{"a": "b"}`, `{"a": "E"}`},                     // encryption
 	{`{"a" : "b"}`, `{"a" : "E"}`},                   // weird spacing
 	{` {  "a"  :"b" } `, ` {  "a"  :"E" } `},         // trailing spaces
@@ -40,4 +48,11 @@ var testCases = []testCase{
 	{`{"a": {"b": "c"}}`, `{"a": {"b": "E"}}`},       // nesting
 	{`{"a": {"_b": "c"}}`, `{"a": {"_b": "c"}}`},     // nested comment
 	{`{"_a": {"b": "c"}}`, `{"_a": {"b": "E"}}`},     // comments don't inherit
+}
+
+var collapseTestCases = []testCase{
+	{
+		"{\"a\": \"b\nc\nd\"\n}", 
+		"{\"a\": \"b\\nc\\nd\"\n}",
+	},
 }

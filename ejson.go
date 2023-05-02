@@ -43,6 +43,11 @@ func Encrypt(in io.Reader, out io.Writer) (int, error) {
 		return -1, err
 	}
 
+	data, err = json.CollapseMultilineStringLiterals(data)
+	if err != nil {
+		return -1, err
+	}
+
 	pubkey, err := json.ExtractPublicKey(data)
 	if err != nil {
 		return -1, err

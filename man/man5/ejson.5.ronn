@@ -50,6 +50,10 @@ example, the password in this excerpt `will` be encrypted.
 }
 ```
 
+For convenience, JSON strings to be encrypted are allowed to contain embedded
+newline characters. These will be translated to escaped newlines. This is often
+useful when encrypting multi-line secrets such as PEM-encoded certificates.
+
 ## SECRET SCHEMA
 
 When a value is encrypted, it will be replaced by a relatively long string of

@@ -25,14 +25,65 @@ import (
 // underscore-to-disable-encryption syntax does not propagate down the hierarchy
 // to children.
 // That is:
-//   * In {"_a": "b"}, Action will not be run at all.
-//   * In {"a": "b"}, Action will be run with "b", and the return value will
-//      replace "b".
-//   * In {"k": {"a": ["b"]}, Action will run on "b".
-//   * In {"_k": {"a": ["b"]}, Action run on "b".
-//   * In {"k": {"_a": ["b"]}, Action will not run.
+//   - In {"_a": "b"}, Action will not be run at all.
+//   - In {"a": "b"}, Action will be run with "b", and the return value will
+//     replace "b".
+//   - In {"k": {"a": ["b"]}, Action will run on "b".
+//   - In {"_k": {"a": ["b"]}, Action run on "b".
+//   - In {"k": {"_a": ["b"]}, Action will not run.
 type Walker struct {
 	Action func([]byte) ([]byte, error)
+}
+
+// It's common to want to paste multiline secrets into an EJSON file, and JSON
+// doesn't handle multiline literals, so we cheat here. Our first pass over the
+// file is to replace embedded newlines in string literals with escaped newlines.
+func CollapseMultilineStringLiterals(data []byte) ([]byte, error) {
+	var (
+		inString bool
+		esc      bool
+		scanner  json.Scanner
+		buf      = make([]byte, 0, len(data))
+	)
+
+	scanner.Reset()
+	for _, c := range data {
+		if inString && c == '\n' {
+			buf = append(buf, []byte{'\\', 'n'}...)
+			continue
+		}
+		buf = append(buf, c)
+		switch v := scanner.Step(&scanner, int(c)); v {
+		case json.ScanContinue:
+			switch c {
+			case '\\':
+				esc = !esc
+			case '"':
+				if esc {
+					esc = false
+				} else {
+					inString = false
+				}
+			default:
+				esc = false
+			}
+		case json.ScanBeginLiteral:
+			esc = false
+			inString = (c == '"')
+		case json.ScanError:
+			return nil, fmt.Errorf("invalid json")
+		case json.ScanEnd:
+			return buf, nil
+		default:
+			inString = false
+			esc = false
+		}
+	}
+	if scanner.EOF() == json.ScanError {
+		// Unexpected EOF => malformed JSON
+		return nil, fmt.Errorf("invalid json")
+	}
+	return buf, nil
 }
 
 // Walk walks an entire JSON structure, running the ejsonWalker.Action on each
