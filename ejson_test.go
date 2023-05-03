@@ -69,7 +69,7 @@ func TestEncryptFileInPlace(t *testing.T) {
 			_, err := EncryptFileInPlace(tempFileName)
 			Convey("should fail", func() {
 				So(err, ShouldNotBeNil)
-				So(err.Error(), ShouldContainSubstring, "invalid character")
+				So(err.Error(), ShouldContainSubstring, "invalid json")
 			})
 		})
 
@@ -91,6 +91,19 @@ func TestEncryptFileInPlace(t *testing.T) {
 			Convey("should encrypt the file", func() {
 				So(err, ShouldBeNil)
 				match := regexp.MustCompile(`{"_public_key": "8d8.*", "a": "EJ.*"}`)
+				So(match.Find(output), ShouldNotBeNil)
+			})
+		})
+
+		Convey("called with a valid keypair and multiline string", func() {
+			setData(tempFileName, []byte(`{"_public_key": "`+validPubKey+"\", \"a\": \"b\nc\"\n}"))
+
+			_, err := EncryptFileInPlace(tempFileName)
+			output, err := ioutil.ReadFile(tempFileName)
+			So(err, ShouldBeNil)
+			Convey("should encrypt the file", func() {
+				So(err, ShouldBeNil)
+				match := regexp.MustCompile(`{"_public_key": "8d8.*", "a": "EJ.*"`+"\n}")
 				So(match.Find(output), ShouldNotBeNil)
 			})
 		})
