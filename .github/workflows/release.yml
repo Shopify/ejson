@@ -32,7 +32,7 @@ jobs:
         uses: goreleaser/goreleaser-action@5df302e5e9e4c66310a6b6493a8865b12c555af2
         with:
           distribution: goreleaser
-          version: v1.2.1
-          args: release --rm-dist --release-notes=tmp/release_changelog.md
+          version: v1.18.1
+          args: release --clean --release-notes=tmp/release_changelog.md
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
