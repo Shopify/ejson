@@ -52,7 +52,7 @@ var walkTestCases = []testCase{
 
 var collapseTestCases = []testCase{
 	{
-		"{\"a\": \"b\r\nc\nd\"\r\n}", 
+		"{\"a\": \"b\r\nc\nd\"\r\n}",
 		"{\"a\": \"b\\r\\nc\\nd\"\r\n}",
 	},
 }

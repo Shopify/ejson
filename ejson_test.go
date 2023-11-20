@@ -30,7 +30,7 @@ func TestGenerateKeypair(t *testing.T) {
 }
 
 func setData(path string, data []byte) error {
-	tmpFile, err := os.OpenFile(path, os.O_TRUNC|os.O_WRONLY, 0600)
+	tmpFile, err := os.OpenFile(path, os.O_TRUNC|os.O_WRONLY, 0o600)
 	if err != nil {
 		return err
 	}
@@ -108,7 +108,6 @@ func TestEncryptFileInPlace(t *testing.T) {
 				So(match.Find(output), ShouldNotBeNil)
 			})
 		})
-
 	})
 }
 
@@ -126,7 +125,7 @@ func TestDecryptFile(t *testing.T) {
 	tempFile.Close()
 	tempFileName := tempFile.Name()
 	validKeyPath := path.Join(tempDir, validPubKey)
-	if err = os.WriteFile(validKeyPath, []byte(validPrivKey), 0600); err != nil {
+	if err = os.WriteFile(validKeyPath, []byte(validPrivKey), 0o600); err != nil {
 		t.Fatal(err)
 	}
 

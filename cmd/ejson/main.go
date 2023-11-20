@@ -25,7 +25,6 @@ func main() {
 	if runtime.GOOS != "windows" {
 		// Rather than using the built-in help printer, display the bundled manpages.
 		cli.HelpPrinter = func(w io.Writer, templ string, data interface{}) {
-
 			if cmd, ok := data.(cli.Command); ok {
 				switch cmd.Name {
 				case "encrypt", "decrypt", "keygen":
