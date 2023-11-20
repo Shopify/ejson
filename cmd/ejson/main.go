@@ -3,7 +3,6 @@ package main
 import (
 	"fmt"
 	"io"
-	"io/ioutil"
 	"os"
 	"runtime"
 	"strings"
@@ -79,7 +78,7 @@ func main() {
 			Action: func(c *cli.Context) {
 				var userSuppliedPrivateKey string
 				if c.Bool("key-from-stdin") {
-					stdinContent, err := ioutil.ReadAll(os.Stdin)
+					stdinContent, err := io.ReadAll(os.Stdin)
 					if err != nil {
 						fmt.Fprintln(os.Stderr, "Failed to read from stdin:", err)
 						os.Exit(1)

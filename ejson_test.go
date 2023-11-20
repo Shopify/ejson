@@ -1,7 +1,6 @@
 package ejson
 
 import (
-	"io/ioutil"
 	"os"
 	"path"
 	"regexp"
@@ -43,13 +42,13 @@ func setData(path string, data []byte) error {
 }
 
 func TestEncryptFileInPlace(t *testing.T) {
-	tempDir, err := ioutil.TempDir("", "ejson_keys")
+	tempDir, err := os.MkdirTemp("", "ejson_keys")
 	if err != nil {
 		t.Fatal(err)
 	}
 	defer os.RemoveAll(tempDir)
 
-	tempFile, err := ioutil.TempFile(tempDir, "ejson_test")
+	tempFile, err := os.CreateTemp(tempDir, "ejson_test")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -86,7 +85,8 @@ func TestEncryptFileInPlace(t *testing.T) {
 			setData(tempFileName, []byte(`{"_public_key": "`+validPubKey+`", "a": "b"}`))
 
 			_, err := EncryptFileInPlace(tempFileName)
-			output, err := ioutil.ReadFile(tempFileName)
+			So(err, ShouldBeNil)
+			output, err := os.ReadFile(tempFileName)
 			So(err, ShouldBeNil)
 			Convey("should encrypt the file", func() {
 				So(err, ShouldBeNil)
@@ -99,11 +99,12 @@ func TestEncryptFileInPlace(t *testing.T) {
 			setData(tempFileName, []byte(`{"_public_key": "`+validPubKey+"\", \"a\": \"b\nc\"\n}"))
 
 			_, err := EncryptFileInPlace(tempFileName)
-			output, err := ioutil.ReadFile(tempFileName)
+			So(err, ShouldBeNil)
+			output, err := os.ReadFile(tempFileName)
 			So(err, ShouldBeNil)
 			Convey("should encrypt the file", func() {
 				So(err, ShouldBeNil)
-				match := regexp.MustCompile(`{"_public_key": "8d8.*", "a": "EJ.*"`+"\n}")
+				match := regexp.MustCompile(`{"_public_key": "8d8.*", "a": "EJ.*"` + "\n}")
 				So(match.Find(output), ShouldNotBeNil)
 			})
 		})
@@ -112,20 +113,20 @@ func TestEncryptFileInPlace(t *testing.T) {
 }
 
 func TestDecryptFile(t *testing.T) {
-	tempDir, err := ioutil.TempDir("", "ejson_keys")
+	tempDir, err := os.MkdirTemp("", "ejson_keys")
 	if err != nil {
 		t.Fatal(err)
 	}
 	defer os.RemoveAll(tempDir)
 
-	tempFile, err := ioutil.TempFile(tempDir, "ejson_test")
+	tempFile, err := os.CreateTemp(tempDir, "ejson_test")
 	if err != nil {
 		t.Fatal(err)
 	}
 	tempFile.Close()
 	tempFileName := tempFile.Name()
 	validKeyPath := path.Join(tempDir, validPubKey)
-	if err = ioutil.WriteFile(validKeyPath, []byte(validPrivKey), 0600); err != nil {
+	if err = os.WriteFile(validKeyPath, []byte(validPrivKey), 0600); err != nil {
 		t.Fatal(err)
 	}
 

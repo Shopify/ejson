@@ -2,7 +2,6 @@ package main
 
 import (
 	"fmt"
-	"io/ioutil"
 	"os"
 
 	"github.com/Shopify/ejson"
@@ -65,5 +64,5 @@ func keygenAction(args []string, keydir string, wFlag bool) error {
 
 // for mocking in tests
 var (
-	writeFile = ioutil.WriteFile
+	writeFile = os.WriteFile
 )
