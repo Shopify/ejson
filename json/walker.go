@@ -51,10 +51,10 @@ func CollapseMultilineStringLiterals(data []byte) ([]byte, error) {
 		if inString && c == '\n' {
 			buf = append(buf, []byte{'\\', 'n'}...)
 			continue
-    } else if inString && c == '\r' {
+		} else if inString && c == '\r' {
 			buf = append(buf, []byte{'\\', 'r'}...)
 			continue
-    }
+		}
 		buf = append(buf, c)
 		switch v := scanner.Step(&scanner, int(c)); v {
 		case json.ScanContinue:
