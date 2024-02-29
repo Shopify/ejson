@@ -10,7 +10,7 @@ jobs:
       - uses: actions/checkout@v2
       - name: Get latest Go version
         id: gover
-        run: echo ::set-output name=goversion::$(awk -F':|-' '!/^#/ {print $2}' .github/dockerfile-for-dependabot/Dockerfile)
+        run: echo goversion=$(awk -F':|-' '!/^#/ {print $2}' .github/dockerfile-for-dependabot/Dockerfile) >> "$GITHUB_OUTPUT"
       - name: Setup go
         uses: actions/setup-go@v2
         with:
