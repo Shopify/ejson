@@ -1,3 +1,16 @@
+# 1.5.0
+
+* Bump Go version and update dependencies
+* Build static binaries
+
+# 1.3.2
+
+* Bump Go version and update dependencies
+
+# 1.3.1
+
+* Fix rubygems build for arm64.
+
 # 1.2.2
 
 * Bump various dependencies and rebuild releases with a modern Go version

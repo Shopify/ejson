@@ -1,13 +1,14 @@
 GEM
   remote: https://rubygems.org/
   specs:
-    arr-pm (0.0.11)
-      cabin (> 0)
+    addressable (2.8.1)
+      public_suffix (>= 2.0.2, < 6.0)
+    arr-pm (0.0.12)
     backports (3.21.0)
     cabin (0.9.0)
     clamp (1.0.1)
     dotenv (2.7.6)
-    fpm (1.13.1)
+    fpm (1.14.1)
       arr-pm (~> 0.0.11)
       backports (>= 2.6.2)
       cabin (>= 0.6.0)
@@ -17,11 +18,12 @@ GEM
       pleaserun (~> 0.0.29)
       rexml
       stud
-    git (1.9.1)
+    git (1.13.1)
+      addressable (~> 2.8)
       rchardet (~> 1.8)
     hpricot (0.8.6)
     insist (1.0.0)
-    json (2.5.1)
+    json (2.6.1)
     mustache (0.99.8)
     pleaserun (0.0.32)
       cabin (> 0)
@@ -30,6 +32,7 @@ GEM
       insist
       mustache (= 0.99.8)
       stud
+    public_suffix (5.0.1)
     rchardet (1.8.0)
     rdiscount (2.2.0.2)
     rexml (3.2.5)

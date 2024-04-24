@@ -8,7 +8,6 @@ import (
 	"encoding/hex"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"os"
 	"strings"
 
@@ -33,13 +32,18 @@ func GenerateKeypair() (pub string, priv string, err error) {
 // Returns the number of bytes written and any error that might have
 // occurred.
 func Encrypt(in io.Reader, out io.Writer) (int, error) {
-	data, err := ioutil.ReadAll(in)
+	data, err := io.ReadAll(in)
 	if err != nil {
 		return -1, err
 	}
 
 	var myKP crypto.Keypair
 	if err = myKP.Generate(); err != nil {
+		return -1, err
+	}
+
+	data, err = json.CollapseMultilineStringLiterals(data)
+	if err != nil {
 		return -1, err
 	}
 
@@ -90,7 +94,7 @@ func EncryptFileInPlace(filePath string) (int, error) {
 		return -1, err
 	}
 
-	if err := ioutil.WriteFile(filePath, outBuffer.Bytes(), fileMode); err != nil {
+	if err := os.WriteFile(filePath, outBuffer.Bytes(), fileMode); err != nil {
 		return -1, err
 	}
 
@@ -101,7 +105,7 @@ func EncryptFileInPlace(filePath string) (int, error) {
 // The private key is expected to be under 'keydir'.
 // Returns error upon failure, or nil on success.
 func Decrypt(in io.Reader, out io.Writer, keydir string, userSuppliedPrivateKey string) error {
-	data, err := ioutil.ReadAll(in)
+	data, err := io.ReadAll(in)
 	if err != nil {
 		return err
 	}
@@ -163,7 +167,7 @@ func DecryptFile(filePath, keydir string, userSuppliedPrivateKey string) ([]byte
 func readPrivateKeyFromDisk(pubkey [32]byte, keydir string) (privkey string, err error) {
 	keyFile := fmt.Sprintf("%s/%x", keydir, pubkey)
 	var fileContents []byte
-	fileContents, err = ioutil.ReadFile(keyFile)
+	fileContents, err = os.ReadFile(keyFile)
 	if err != nil {
 		err = fmt.Errorf("couldn't read key file (%s)", err.Error())
 		return

@@ -52,6 +52,12 @@ setting `EJSON_KEYDIR` or passing the `-keydir` option.
 $ mkdir -p /opt/ejson/keys
 ```
 
+> *For Mac OS users.* By default you won't have write permissions to `/opt/ejson` folder. Make sure to run the following command to grant these permissions:
+
+```bash
+sudo chown -R $(whoami) /opt/ejson
+```
+
 ### 2: Generate a keypair
 
 When called with `-w`, `ejson keygen` will write the keypair into the `keydir`
@@ -85,6 +91,7 @@ Create this file as `test.ejson`:
 ```json
 {
   "_public_key": "<key>",
+  "_database_username": "1234username",
   "database_password": "1234password"
 }
 ```
@@ -92,11 +99,12 @@ Create this file as `test.ejson`:
 ### 4: Encrypt the file
 
 Running `ejson encrypt test.ejson` will encrypt any new plaintext keys in the
-file, and leave any existing encrypted keys untouched:
+file and leave any existing encrypted keys or keys with property names prefixed with `_` untouched:
 
 ```json
 {
   "_public_key": "63ccf05a9492e68e12eeb1c705888aebdcc0080af7e594fc402beb24cce9d14f",
+  "_database_username": "1234username",
   "database_password": "EJ[1:WGj2t4znULHT1IRveMEdvvNXqZzNBNMsJ5iZVy6Dvxs=:kA6ekF8ViYR5ZLeSmMXWsdLfWr7wn9qS:fcHQtdt6nqcNOXa97/M278RX6w==]"
 }
 ```
@@ -119,6 +127,7 @@ only takes one file parameter, and prints the output to `stdout`:
 $ ejson decrypt foo.ejson
 {
   "_public_key": "63ccf05a9492e68e12eeb1c705888aebdcc0080af7e594fc402beb24cce9d14f",
+  "_database_username": "1234username",
   "database_password": "1234password"
 }
 ```

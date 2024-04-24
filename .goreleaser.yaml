@@ -1,0 +1,9 @@
+# .goreleaser.yaml
+builds:
+- main: ./cmd/ejson/
+  flags:
+  - -trimpath
+  ldflags:
+  - -s -w -extldflags "-static"
+  env:
+  - CGO_ENABLED=0

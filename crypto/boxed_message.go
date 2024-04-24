@@ -12,15 +12,15 @@ var messageParser = regexp.MustCompile("\\AEJ\\[(\\d):([A-Za-z0-9+=/]{44}):([A-Z
 // boxedMessage dumps and loads the wire format for encrypted messages. The
 // schema is fairly simple:
 //
-//   "EJ["
-//   SchemaVersion ( "1" )
-//   ":"
-//   EncrypterPublic :: base64-encoded 32-byte key
-//   ":"
-//   Nonce :: base64-encoded 24-byte nonce
-//   ":"
-//   Box :: base64-encoded encrypted message
-//   "]"
+//	"EJ["
+//	SchemaVersion ( "1" )
+//	":"
+//	EncrypterPublic :: base64-encoded 32-byte key
+//	":"
+//	Nonce :: base64-encoded 24-byte nonce
+//	":"
+//	Box :: base64-encoded encrypted message
+//	"]"
 type boxedMessage struct {
 	SchemaVersion   int
 	EncrypterPublic [32]byte
