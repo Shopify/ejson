@@ -1,6 +1,6 @@
 module github.com/Shopify/ejson
 
-go 1.21.4
+go 1.22.1
 
 require (
 	github.com/dustin/gojson v0.0.0-20160307161227-2e71ec9dd5ad
