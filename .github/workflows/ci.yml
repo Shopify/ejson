@@ -7,7 +7,7 @@ jobs:
     runs-on: ubuntu-latest
     name: Go test
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v4
       - name: Get latest Go version
         id: gover
         run: echo goversion=$(awk -F':|-' '!/^#/ {print $2}' .github/dockerfile-for-dependabot/Dockerfile) >> "$GITHUB_OUTPUT"
