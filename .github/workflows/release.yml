@@ -31,7 +31,7 @@ jobs:
           mkdir -p tmp
           sed '/^# '$version'/,/^# /!d;//d;/^\s*$/d' CHANGELOG.md > tmp/release_changelog.md
       - name: Release
-        uses: goreleaser/goreleaser-action@5df302e5e9e4c66310a6b6493a8865b12c555af2 # v2.8.0
+        uses: goreleaser/goreleaser-action@5742e2a039330cbb23ebf35f046f814d4c6ff811 # v5.1.0
         with:
           distribution: goreleaser
           version: v1.25.1
