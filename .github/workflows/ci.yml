@@ -12,7 +12,7 @@ jobs:
         id: gover
         run: echo goversion=$(awk -F':|-' '!/^#/ {print $2}' .github/dockerfile-for-dependabot/Dockerfile) >> "$GITHUB_OUTPUT"
       - name: Setup go
-        uses: actions/setup-go@v2
+        uses: actions/setup-go@v5
         with:
           go-version: "${{ steps.gover.outputs.goversion }}"
       - run: |
