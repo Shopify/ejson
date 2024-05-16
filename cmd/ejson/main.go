@@ -11,13 +11,6 @@ import (
 	"github.com/urfave/cli"
 )
 
-func execManpage(sec, page string) {
-	if err := syscall.Exec("/usr/bin/env", []string{"/usr/bin/env", "man", sec, page}, os.Environ()); err != nil {
-		fmt.Fprintln(os.Stderr, "Exec error:", err)
-	}
-	os.Exit(1)
-}
-
 func main() {
 	// Encryption is expensive. We'd rather burn cycles on many cores than wait.
 	runtime.GOMAXPROCS(runtime.NumCPU())
