@@ -33,17 +33,17 @@ build/man/%.gz: man/%.ronn
 	mkdir -p "$(@D)"
 	set -euo pipefail ; $(BUNDLE_EXEC) ronn -r --pipe "$<" | gzip > "$@" || (rm -f "$<" ; false)
 
-build/bin/linux-amd64: $(GOFILES) cmd/$(NAME)/version.go
+build/bin/linux-amd64: $(GOFILES)
 	CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -trimpath -ldflags '-s -w -extldflags "-static"' -o "$@" "$(PACKAGE)/cmd/$(NAME)"
-build/bin/linux-arm64: $(GOFILES) cmd/$(NAME)/version.go
+build/bin/linux-arm64: $(GOFILES)
 	CGO_ENABLED=0 GOOS=linux GOARCH=arm64 go build -trimpath -ldflags '-s -w -extldflags "-static"' -o "$@" "$(PACKAGE)/cmd/$(NAME)"
-build/bin/darwin-amd64: $(GOFILES) cmd/$(NAME)/version.go
+build/bin/darwin-amd64: $(GOFILES)
 	CGO_ENABLED=0 GOOS=darwin GOARCH=amd64 go build -trimpath -ldflags '-s -w -extldflags "-static"' -o "$@" "$(PACKAGE)/cmd/$(NAME)"
-build/bin/darwin-arm64: $(GOFILES) cmd/$(NAME)/version.go
+build/bin/darwin-arm64: $(GOFILES)
 	CGO_ENABLED=0 GOOS=darwin GOARCH=arm64 go build -trimpath -ldflags '-s -w -extldflags "-static"' -o "$@" "$(PACKAGE)/cmd/$(NAME)"
-build/bin/freebsd-amd64: $(GOFILES) cmd/$(NAME)/version.go
+build/bin/freebsd-amd64: $(GOFILES)
 	CGO_ENABLED=0 GOOS=freebsd GOARCH=amd64 go build -trimpath -ldflags '-s -w -extldflags "-static"' -o "$@" "$(PACKAGE)/cmd/$(NAME)"
-build/bin/windows-amd64.exe: $(GOFILES) cmd/$(NAME)/version.go
+build/bin/windows-amd64.exe: $(GOFILES)
 	CGO_ENABLED=0 GOOS=windows GOARCH=amd64 go build -trimpath -ldflags '-s -w -extldflags "-static"' -o "$@" "$(PACKAGE)/cmd/$(NAME)"
 
 $(GEM): rubygem/$(NAME)-$(VERSION).gem
@@ -91,9 +91,6 @@ rubygem/build/linux-arm64/ejson: build/bin/linux-arm64
 rubygem/build/windows-amd64/ejson.exe: build/bin/windows-amd64.exe
 	mkdir -p $(@D)
 	cp -a "$<" "$@"
-
-cmd/$(NAME)/version.go: VERSION
-	printf '%b' 'package main\n\nconst VERSION string = "$(VERSION)"\n' > $@
 
 rubygem/lib/$(NAME)/version.rb: VERSION
 	mkdir -p $(@D)

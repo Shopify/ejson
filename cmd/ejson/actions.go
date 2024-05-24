@@ -43,7 +43,7 @@ func decryptAction(args []string, keydir, userSuppliedPrivateKey, outFile string
 	return err
 }
 
-func keygenAction(args []string, keydir string, wFlag bool) error {
+func keygenAction(_ []string, keydir string, wFlag bool) error {
 	pub, priv, err := ejson.GenerateKeypair()
 	if err != nil {
 		return err

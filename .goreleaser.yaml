@@ -1,9 +1,16 @@
-# .goreleaser.yaml
 builds:
-- main: ./cmd/ejson/
-  flags:
-  - -trimpath
-  ldflags:
-  - -s -w -extldflags "-static"
-  env:
-  - CGO_ENABLED=0
+  - main: ./cmd/ejson/
+    flags:
+      - -trimpath
+    ldflags:
+      - -s -w -X main.VERSION={{.Version}} -extldflags "-static"
+    env:
+      - CGO_ENABLED=0
+    goos:
+      - darwin
+      - freebsd
+      - linux
+      - windows
+    goarch:
+      - amd64
+      - arm64
