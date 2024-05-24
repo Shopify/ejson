@@ -7,14 +7,13 @@ AMD64_DEB=pkg/$(NAME)_$(VERSION)_amd64.deb
 ARM64_DEB=pkg/$(NAME)_$(VERSION)_arm64.deb
 
 GOFILES=$(shell find . -type f -name '*.go')
-MANFILES=$(shell find man -name '*.ronn' -exec echo build/{} \; | sed 's/\.ronn/\.gz/')
 
 BUNDLE_EXEC=bundle exec
 SHELL=/usr/bin/env bash
 
 export GO111MODULE=on
 
-.PHONY: default all binaries gem man clean dev_bootstrap setup
+.PHONY: default all binaries gem clean dev_bootstrap setup
 
 default: all
 all: setup gem deb
@@ -27,11 +26,6 @@ binaries: \
 	build/bin/windows-amd64.exe
 gem: $(GEM)
 deb: $(AMD64_DEB) $(ARM64_DEB)
-man: $(MANFILES)
-
-build/man/%.gz: man/%.ronn
-	mkdir -p "$(@D)"
-	set -euo pipefail ; $(BUNDLE_EXEC) ronn -r --pipe "$<" | gzip > "$@" || (rm -f "$<" ; false)
 
 build/bin/linux-amd64: $(GOFILES) cmd/$(NAME)/version.go
 	CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -trimpath -ldflags '-s -w -extldflags "-static"' -o "$@" "$(PACKAGE)/cmd/$(NAME)"
@@ -58,15 +52,11 @@ rubygem/$(NAME)-$(VERSION).gem: \
 	rubygem/build/darwin-amd64/ejson \
 	rubygem/build/darwin-arm64/ejson \
 	rubygem/build/freebsd-amd64/ejson \
-	rubygem/build/windows-amd64/ejson.exe \
-	rubygem/man
+	rubygem/build/windows-amd64/ejson.exe
 	cd rubygem && gem build ejson.gemspec
 
 rubygem/LICENSE.txt: LICENSE.txt
 	cp "$<" "$@"
-
-rubygem/man: man
-	cp -a build/man $@
 
 rubygem/build/darwin-amd64/ejson: build/bin/darwin-amd64
 	mkdir -p $(@D)
@@ -99,7 +89,7 @@ rubygem/lib/$(NAME)/version.rb: VERSION
 	mkdir -p $(@D)
 	printf '%b' 'module $(RUBY_MODULE)\n  VERSION = "$(VERSION)"\nend\n' > $@
 
-$(AMD64_DEB): build/bin/linux-amd64 man
+$(AMD64_DEB): build/bin/linux-amd64 
 	mkdir -p $(@D)
 	rm -f "$@"
 	$(BUNDLE_EXEC) fpm \
@@ -116,10 +106,9 @@ $(AMD64_DEB): build/bin/linux-amd64 man
 		--maintainer="Shopify <admins@shopify.com>" \
 		--description="utility for managing a collection of secrets in source control. Secrets are encrypted using public key, elliptic curve cryptography." \
 		--url="https://github.com/Shopify/ejson" \
-		./build/man/=/usr/share/man/ \
 		./$<=/usr/bin/$(NAME)
 
-$(ARM64_DEB): build/bin/linux-arm64 man
+$(ARM64_DEB): build/bin/linux-arm64
 	mkdir -p $(@D)
 	rm -f "$@"
 	$(BUNDLE_EXEC) fpm \
@@ -136,7 +125,6 @@ $(ARM64_DEB): build/bin/linux-arm64 man
 		--maintainer="Shopify <admins@shopify.com>" \
 		--description="utility for managing a collection of secrets in source control. Secrets are encrypted using public key, elliptic curve cryptography." \
 		--url="https://github.com/Shopify/ejson" \
-		./build/man/=/usr/share/man/ \
 		./$<=/usr/bin/$(NAME)
 
 setup:
