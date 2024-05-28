@@ -14,7 +14,6 @@ GEM
       pleaserun (~> 0.0.29)
       rexml
       stud
-    hpricot (0.8.6)
     insist (1.0.0)
     mustache (0.99.8)
     pleaserun (0.0.32)
@@ -24,13 +23,8 @@ GEM
       insist
       mustache (= 0.99.8)
       stud
-    rdiscount (2.2.0.2)
     rexml (3.2.8)
       strscan (>= 3.0.9)
-    ronn (0.7.3)
-      hpricot (>= 0.8.2)
-      mustache (>= 0.7.0)
-      rdiscount (>= 1.5.8)
     strscan (3.1.0)
     stud (0.0.23)
 
@@ -39,7 +33,6 @@ PLATFORMS
 
 DEPENDENCIES
   fpm (~> 1.15)
-  ronn
 
 BUNDLED WITH
    2.2.22

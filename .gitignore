@@ -9,3 +9,4 @@
 /rubygem/lib/ejson/version.rb
 .bundle
 /tmp
+/dist/
