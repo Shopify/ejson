@@ -14,3 +14,12 @@ builds:
     goarch:
       - amd64
       - arm64
+
+nfpms:
+  - id: goreleaser
+    maintainer: "Shopify <admins@shopify.com>"
+    description: "utility for managing a collection of secrets in source control. Secrets are encrypted using public key, elliptic curve cryptography."
+    license: "MIT"
+    homepage: "https://github.com/Shopify/ejson"
+    formats:
+      - deb

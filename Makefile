@@ -3,42 +3,40 @@ RUBY_MODULE=EJSON
 PACKAGE=github.com/Shopify/ejson
 VERSION=$(shell cat VERSION)
 GEM=pkg/$(NAME)-$(VERSION).gem
-AMD64_DEB=pkg/$(NAME)_$(VERSION)_amd64.deb
-ARM64_DEB=pkg/$(NAME)_$(VERSION)_arm64.deb
+AMD64_DEB=dist/ejson_$(VERSION)_linux_amd64.deb
+AMD64_DEB=dist/ejson_$(VERSION)_linux_arm64.deb
 
 GOFILES=$(shell find . -type f -name '*.go')
 
 BUNDLE_EXEC=bundle exec
 SHELL=/usr/bin/env bash
 
-export GO111MODULE=on
-
-.PHONY: default all binaries gem clean dev_bootstrap setup
+.PHONY: default all binaries gem clean dev_bootstrap
 
 default: all
 all: setup gem deb
 binaries: \
-	build/bin/linux-amd64 \
-	build/bin/linux-arm64 \
-	build/bin/darwin-amd64 \
-	build/bin/darwin-arm64 \
-	build/bin/freebsd-amd64 \
-	build/bin/windows-amd64.exe
+	dist/ejson_linux_amd64_v1/ejson \
+	dist/ejson_linux_arm64/ejson \
+	dist/ejson_darwin_amd64_v1/ejson \
+	dist/ejson_darwin_arm64/ejson \
+	dist/ejson_freebsd_amd64_v1/ejson \
+	dist/ejson_windows_arm64/ejson.exe
 gem: $(GEM)
 deb: $(AMD64_DEB) $(ARM64_DEB)
 
-build/bin/linux-amd64: $(GOFILES)
-	CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -trimpath -ldflags '-s -w -extldflags "-static"' -o "$@" "$(PACKAGE)/cmd/$(NAME)"
-build/bin/linux-arm64: $(GOFILES)
-	CGO_ENABLED=0 GOOS=linux GOARCH=arm64 go build -trimpath -ldflags '-s -w -extldflags "-static"' -o "$@" "$(PACKAGE)/cmd/$(NAME)"
-build/bin/darwin-amd64: $(GOFILES)
-	CGO_ENABLED=0 GOOS=darwin GOARCH=amd64 go build -trimpath -ldflags '-s -w -extldflags "-static"' -o "$@" "$(PACKAGE)/cmd/$(NAME)"
-build/bin/darwin-arm64: $(GOFILES)
-	CGO_ENABLED=0 GOOS=darwin GOARCH=arm64 go build -trimpath -ldflags '-s -w -extldflags "-static"' -o "$@" "$(PACKAGE)/cmd/$(NAME)"
-build/bin/freebsd-amd64: $(GOFILES)
-	CGO_ENABLED=0 GOOS=freebsd GOARCH=amd64 go build -trimpath -ldflags '-s -w -extldflags "-static"' -o "$@" "$(PACKAGE)/cmd/$(NAME)"
-build/bin/windows-amd64.exe: $(GOFILES)
-	CGO_ENABLED=0 GOOS=windows GOARCH=amd64 go build -trimpath -ldflags '-s -w -extldflags "-static"' -o "$@" "$(PACKAGE)/cmd/$(NAME)"
+dist/ejson_linux_amd64_v1/ejson: $(GOFILES)
+	goreleaser build --snapshot --clean
+dist/ejson_linux_arm64/ejson: $(GOFILES)
+	goreleaser build --snapshot --clean
+dist/ejson_darwin_amd64_v1/ejson: $(GOFILES)
+	goreleaser build --snapshot --clean
+dist/ejson_darwin_arm64/ejson: $(GOFILES)
+	goreleaser build --snapshot --clean
+dist/ejson_freebsd_amd64_v1/ejson: $(GOFILES)
+	goreleaser build --snapshot --clean
+dist/ejson_windows_arm64/ejson.exe: $(GOFILES)
+	goreleaser build --snapshot --clean
 
 $(GEM): rubygem/$(NAME)-$(VERSION).gem
 	mkdir -p $(@D)
@@ -58,27 +56,27 @@ rubygem/$(NAME)-$(VERSION).gem: \
 rubygem/LICENSE.txt: LICENSE.txt
 	cp "$<" "$@"
 
-rubygem/build/darwin-amd64/ejson: build/bin/darwin-amd64
+rubygem/build/darwin-amd64/ejson: dist/ejson_darwin_amd64_v1/ejson
 	mkdir -p $(@D)
 	cp -a "$<" "$@"
 
-rubygem/build/darwin-arm64/ejson: build/bin/darwin-arm64
+rubygem/build/darwin-arm64/ejson: dist/ejson_darwin_arm64/ejson
 	mkdir -p $(@D)
 	cp -a "$<" "$@"
 
-rubygem/build/freebsd-amd64/ejson: build/bin/freebsd-amd64
+rubygem/build/freebsd-amd64/ejson: dist/ejson_freebsd_amd64_v1/ejson
 	mkdir -p $(@D)
 	cp -a "$<" "$@"
 
-rubygem/build/linux-amd64/ejson: build/bin/linux-amd64
+rubygem/build/linux-amd64/ejson: dist/ejson_linux_amd64_v1/ejson
 	mkdir -p $(@D)
 	cp -a "$<" "$@"
 
-rubygem/build/linux-arm64/ejson: build/bin/linux-arm64
+rubygem/build/linux-arm64/ejson: dist/ejson_linux_arm64/ejson
 	mkdir -p $(@D)
 	cp -a "$<" "$@"
 
-rubygem/build/windows-amd64/ejson.exe: build/bin/windows-amd64.exe
+rubygem/build/windows-amd64/ejson.exe: dist/ejson_windows_arm64/ejson.exe
 	mkdir -p $(@D)
 	cp -a "$<" "$@"
 
@@ -86,47 +84,11 @@ rubygem/lib/$(NAME)/version.rb: VERSION
 	mkdir -p $(@D)
 	printf '%b' 'module $(RUBY_MODULE)\n  VERSION = "$(VERSION)"\nend\n' > $@
 
-$(AMD64_DEB): build/bin/linux-amd64 
-	mkdir -p $(@D)
-	rm -f "$@"
-	$(BUNDLE_EXEC) fpm \
-		-t deb \
-		-s dir \
-		--name="$(NAME)" \
-		--version="$(VERSION)" \
-		--package="$@" \
-		--license=MIT \
-		--category=admin \
-		--no-depends \
-		--no-auto-depends \
-		--architecture=amd64 \
-		--maintainer="Shopify <admins@shopify.com>" \
-		--description="utility for managing a collection of secrets in source control. Secrets are encrypted using public key, elliptic curve cryptography." \
-		--url="https://github.com/Shopify/ejson" \
-		./$<=/usr/bin/$(NAME)
+$(AMD64_DEB): dist/ejson_linux_amd64_v1/ejson
+	goreleaser release --clean --snapshot --skip publish
 
-$(ARM64_DEB): build/bin/linux-arm64
-	mkdir -p $(@D)
-	rm -f "$@"
-	$(BUNDLE_EXEC) fpm \
-		-t deb \
-		-s dir \
-		--name="$(NAME)" \
-		--version="$(VERSION)" \
-		--package="$@" \
-		--license=MIT \
-		--category=admin \
-		--no-depends \
-		--no-auto-depends \
-		--architecture=arm64 \
-		--maintainer="Shopify <admins@shopify.com>" \
-		--description="utility for managing a collection of secrets in source control. Secrets are encrypted using public key, elliptic curve cryptography." \
-		--url="https://github.com/Shopify/ejson" \
-		./$<=/usr/bin/$(NAME)
-
-setup:
-	go mod download
-	go mod tidy
+$(ARM64_DEB): dist/ejson_linux_arm64/ejson
+	goreleaser release --clean --snapshot --skip publish
 
 clean:
-	rm -rf build pkg rubygem/{LICENSE.txt,lib/ejson/version.rb,build,*.gem}
+	rm -rf build dist pkg rubygem/{LICENSE.txt,lib/ejson/version.rb,build,*.gem}
