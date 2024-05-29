@@ -1,38 +1,11 @@
 GEM
   remote: https://rubygems.org/
   specs:
-    arr-pm (0.0.12)
-    backports (3.25.0)
-    cabin (0.9.0)
-    clamp (1.0.1)
-    dotenv (3.1.2)
-    fpm (1.15.1)
-      arr-pm (~> 0.0.11)
-      backports (>= 2.6.2)
-      cabin (>= 0.6.0)
-      clamp (~> 1.0.0)
-      pleaserun (~> 0.0.29)
-      rexml
-      stud
-    insist (1.0.0)
-    mustache (0.99.8)
-    pleaserun (0.0.32)
-      cabin (> 0)
-      clamp
-      dotenv
-      insist
-      mustache (= 0.99.8)
-      stud
-    rexml (3.2.8)
-      strscan (>= 3.0.9)
-    strscan (3.1.0)
-    stud (0.0.23)
 
 PLATFORMS
   ruby
 
 DEPENDENCIES
-  fpm (~> 1.15)
 
 BUNDLED WITH
-   2.2.22
+   2.2.33
