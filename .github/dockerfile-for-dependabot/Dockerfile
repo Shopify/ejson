@@ -1,2 +1,2 @@
 # Used for dependabot to detect new golang versions
-FROM golang:1.23.0-alpine
+FROM golang:1.23.1-alpine
