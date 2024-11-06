@@ -3,7 +3,7 @@ name: ejson
 up:
   - homebrew:
     - gnu-tar
-  - ruby: 3.3.1
+  - ruby
   - go:
       version: '1.22.3'
   - bundler
