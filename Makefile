@@ -17,26 +17,26 @@ default: all
 all: setup gem deb
 binaries: \
 	dist/ejson_linux_amd64_v1/ejson \
-	dist/ejson_linux_arm64/ejson \
+	dist/ejson_linux_arm64_v8.0/ejson \
 	dist/ejson_darwin_amd64_v1/ejson \
-	dist/ejson_darwin_arm64/ejson \
+	dist/ejson_darwin_arm64_v8.0/ejson \
 	dist/ejson_freebsd_amd64_v1/ejson \
-	dist/ejson_windows_arm64/ejson.exe
+	dist/ejson_windows_arm64_v8.0/ejson.exe
 gem: $(GEM)
 deb: $(AMD64_DEB) $(ARM64_DEB)
 
 dist/ejson_linux_amd64_v1/ejson: $(GOFILES)
-	goreleaser build --snapshot --clean
-dist/ejson_linux_arm64/ejson: $(GOFILES)
-	goreleaser build --snapshot --clean
+	goreleaser build --clean
+dist/ejson_linux_arm64_v8.0/ejson: $(GOFILES)
+	goreleaser build --clean
 dist/ejson_darwin_amd64_v1/ejson: $(GOFILES)
-	goreleaser build --snapshot --clean
-dist/ejson_darwin_arm64/ejson: $(GOFILES)
-	goreleaser build --snapshot --clean
+	goreleaser build --clean
+dist/ejson_darwin_arm64_v8.0/ejson: $(GOFILES)
+	goreleaser build --clean
 dist/ejson_freebsd_amd64_v1/ejson: $(GOFILES)
-	goreleaser build --snapshot --clean
-dist/ejson_windows_arm64/ejson.exe: $(GOFILES)
-	goreleaser build --snapshot --clean
+	goreleaser build --clean
+dist/ejson_windows_arm64_v8.0/ejson.exe: $(GOFILES)
+	goreleaser build --clean
 
 $(GEM): rubygem/$(NAME)-$(VERSION).gem
 	mkdir -p $(@D)
@@ -60,7 +60,7 @@ rubygem/build/darwin-amd64/ejson: dist/ejson_darwin_amd64_v1/ejson
 	mkdir -p $(@D)
 	cp -a "$<" "$@"
 
-rubygem/build/darwin-arm64/ejson: dist/ejson_darwin_arm64/ejson
+rubygem/build/darwin-arm64/ejson: dist/ejson_darwin_arm64_v8.0/ejson
 	mkdir -p $(@D)
 	cp -a "$<" "$@"
 
@@ -72,11 +72,11 @@ rubygem/build/linux-amd64/ejson: dist/ejson_linux_amd64_v1/ejson
 	mkdir -p $(@D)
 	cp -a "$<" "$@"
 
-rubygem/build/linux-arm64/ejson: dist/ejson_linux_arm64/ejson
+rubygem/build/linux-arm64/ejson: dist/ejson_linux_arm64_v8.0/ejson
 	mkdir -p $(@D)
 	cp -a "$<" "$@"
 
-rubygem/build/windows-amd64/ejson.exe: dist/ejson_windows_arm64/ejson.exe
+rubygem/build/windows-amd64/ejson.exe: dist/ejson_windows_amd64_v1/ejson.exe
 	mkdir -p $(@D)
 	cp -a "$<" "$@"
 
@@ -85,10 +85,10 @@ rubygem/lib/$(NAME)/version.rb: VERSION
 	printf '%b' 'module $(RUBY_MODULE)\n  VERSION = "$(VERSION)"\nend\n' > $@
 
 $(AMD64_DEB): dist/ejson_linux_amd64_v1/ejson
-	goreleaser release --clean --snapshot --skip publish
+	goreleaser release --clean --skip publish
 
-$(ARM64_DEB): dist/ejson_linux_arm64/ejson
-	goreleaser release --clean --snapshot --skip publish
+$(ARM64_DEB): dist/ejson_linux_arm64_v8.0/ejson
+	goreleaser release --clean --skip publish
 
 clean:
 	rm -rf build dist pkg rubygem/{LICENSE.txt,lib/ejson/version.rb,build,*.gem}
