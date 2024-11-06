@@ -14,7 +14,7 @@ SHELL=/usr/bin/env bash
 .PHONY: default all binaries gem clean dev_bootstrap
 
 default: all
-all: setup gem deb
+all: gem deb
 binaries: \
 	dist/ejson_linux_amd64_v1/ejson \
 	dist/ejson_linux_arm64_v8.0/ejson \
