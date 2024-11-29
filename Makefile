@@ -4,7 +4,7 @@ PACKAGE=github.com/Shopify/ejson
 VERSION=$(shell cat VERSION)
 GEM=pkg/$(NAME)-$(VERSION).gem
 AMD64_DEB=dist/ejson_$(VERSION)_linux_amd64.deb
-AMD64_DEB=dist/ejson_$(VERSION)_linux_arm64.deb
+ARM64_DEB=dist/ejson_$(VERSION)_linux_arm64.deb
 
 GOFILES=$(shell find . -type f -name '*.go')
 
