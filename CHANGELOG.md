@@ -1,3 +1,7 @@
+# 1.5.4
+
+* Bumps golang.org/x/crypto from 0.17.0 to 0.31.0
+
 # 1.5.0
 
 * Bump Go version and update dependencies
