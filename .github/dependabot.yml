@@ -4,8 +4,6 @@ updates:
     directory: "/.github/dockerfile-for-dependabot/"
     schedule:
       interval: "daily"
-    reviewers:
-      - "Shopify/infrasec"
   - package-ecosystem: "bundler"
     directory: "/"
     schedule:
