@@ -176,12 +176,33 @@ func (ew *Walker) runAction(data []byte) ([]byte, error) {
 	return append(quoted, data[len(trimmed):]...), nil
 }
 
-// probably a better way to do this, but...
+// quoteBytes takes a byte slice and returns it as a properly quoted JSON string.
+// Unlike json.Marshal, this does not escape HTML characters (<, >, &) to their
+// unicode equivalents, preserving the original content.
 func quoteBytes(in []byte) ([]byte, error) {
-	data := []string{string(in)}
-	out, err := json.Marshal(data)
-	if err != nil {
-		return nil, err
+	var buf bytes.Buffer
+	buf.WriteByte('"')
+	for _, b := range in {
+		switch b {
+		case '"':
+			buf.WriteString(`\"`)
+		case '\\':
+			buf.WriteString(`\\`)
+		case '\n':
+			buf.WriteString(`\n`)
+		case '\r':
+			buf.WriteString(`\r`)
+		case '\t':
+			buf.WriteString(`\t`)
+		default:
+			if b < 0x20 {
+				// Control characters must be escaped
+				buf.WriteString(fmt.Sprintf(`\u%04x`, b))
+			} else {
+				buf.WriteByte(b)
+			}
+		}
 	}
-	return out[1 : len(out)-1], nil
+	buf.WriteByte('"')
+	return buf.Bytes(), nil
 }

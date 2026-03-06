@@ -50,6 +50,28 @@ var walkTestCases = []testCase{
 	{`{"_a": {"b": "c"}}`, `{"_a": {"b": "E"}}`},     // comments don't inherit
 }
 
+func TestQuoteBytes(t *testing.T) {
+	Convey("quoteBytes preserves special characters without HTML escaping", t, func() {
+		tests := []struct {
+			in, expected string
+		}{
+			{"hello", `"hello"`},
+			{"<>&", `"<>&"`}, // HTML chars not escaped
+			{"aaa<bbb>ccc^ddd~eee&fff", `"aaa<bbb>ccc^ddd~eee&fff"`},
+			{`with"quote`, `"with\"quote"`},          // quotes escaped
+			{"with\\backslash", `"with\\backslash"`}, // backslash escaped
+			{"with\nnewline", `"with\nnewline"`},     // newline escaped
+			{"with\ttab", `"with\ttab"`},             // tab escaped
+			{"with\rcarriage", `"with\rcarriage"`},   // carriage return escaped
+		}
+		for _, tc := range tests {
+			result, err := quoteBytes([]byte(tc.in))
+			So(err, ShouldBeNil)
+			So(string(result), ShouldEqual, tc.expected)
+		}
+	})
+}
+
 var collapseTestCases = []testCase{
 	{
 		"{\"a\": \"b\r\nc\nd\"\r\n}",
