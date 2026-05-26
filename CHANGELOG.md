@@ -1,3 +1,9 @@
+# Unreleased
+
+* Add hybrid post-quantum `v3` encryption using X25519 + ML-KEM-768, HKDF-SHA256, and XChaCha20-Poly1305.
+* Add `ejson keygen -scheme v3` / `-pqc` and schema-aware keydir lookup using v3 key IDs.
+* Preserve legacy `v1` key generation and decryption compatibility.
+
 # 1.5.4
 
 * Bumps golang.org/x/crypto from 0.17.0 to 0.31.0

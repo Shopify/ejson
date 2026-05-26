@@ -3,13 +3,16 @@ package crypto
 import (
 	"encoding/base64"
 	"fmt"
-	"regexp"
 	"strconv"
+	"strings"
 )
 
-var messageParser = regexp.MustCompile("\\AEJ\\[(\\d):([A-Za-z0-9+=/]{44}):([A-Za-z0-9+=/]{32}):(.+)\\]\\z")
+const (
+	boxedMessagePrefix = "EJ["
+	boxedMessageSuffix = "]"
+)
 
-// boxedMessage dumps and loads the wire format for encrypted messages. The
+// boxedMessage dumps and loads the v1 wire format for encrypted messages. The
 // schema is fairly simple:
 //
 //	"EJ["
@@ -28,14 +31,26 @@ type boxedMessage struct {
 	Box             []byte
 }
 
-// IsBoxedMessage tests whether a value is formatted using the boxedMessage
-// format. This can be used to determine whether a string value requires
+// IsBoxedMessage tests whether a value is formatted using a supported boxed
+// message format. This can be used to determine whether a string value requires
 // encryption or is already encrypted.
 func IsBoxedMessage(data []byte) bool {
-	return messageParser.Find(data) != nil
+	version, fields, err := parseBoxedEnvelope(data)
+	if err != nil {
+		return false
+	}
+
+	switch version {
+	case SchemaVersionLegacy:
+		return len(fields) == 3 && len(fields[0]) == base64.StdEncoding.EncodedLen(32) && len(fields[1]) == base64.StdEncoding.EncodedLen(24) && fields[2] != ""
+	case SchemaVersionHybrid:
+		return len(fields) == 4 && len(fields[0]) == base64.StdEncoding.EncodedLen(32) && len(fields[1]) == base64.StdEncoding.EncodedLen(hybridMLKEMCiphertextSize) && len(fields[2]) == base64.StdEncoding.EncodedLen(24) && fields[3] != ""
+	default:
+		return false
+	}
 }
 
-// Dump dumps to the wire format
+// Dump dumps to the v1 wire format.
 func (b *boxedMessage) Dump() []byte {
 	pub := base64.StdEncoding.EncodeToString(b.EncrypterPublic[:])
 	nonce := base64.StdEncoding.EncodeToString(b.Nonce[:])
@@ -46,59 +61,60 @@ func (b *boxedMessage) Dump() []byte {
 	return []byte(str)
 }
 
-// Load restores from the wire format.
+// Load restores from the v1 wire format.
 func (b *boxedMessage) Load(from []byte) error {
-	var ssver, spub, snonce, sbox string
-	var err error
-
-	allMatches := messageParser.FindAllStringSubmatch(string(from), -1) // -> [][][]byte
-	if len(allMatches) != 1 {
-		return fmt.Errorf("invalid message format")
-	}
-	matches := allMatches[0]
-	if len(matches) != 5 {
-		return fmt.Errorf("invalid message format")
-	}
-
-	ssver = matches[1]
-	spub = matches[2]
-	snonce = matches[3]
-	sbox = matches[4]
-
-	b.SchemaVersion, err = strconv.Atoi(ssver)
+	version, fields, err := parseBoxedEnvelope(from)
 	if err != nil {
 		return err
 	}
+	if version != SchemaVersionLegacy || len(fields) != 3 {
+		return fmt.Errorf("invalid message format")
+	}
+	b.SchemaVersion = version
 
-	pub, err := base64.StdEncoding.DecodeString(spub)
+	pub, err := base64.StdEncoding.DecodeString(fields[0])
 	if err != nil {
 		return err
 	}
-	pubBytes := []byte(pub)
-	if len(pubBytes) != 32 {
+	if len(pub) != 32 {
 		return fmt.Errorf("public key invalid")
 	}
-	var public [32]byte
-	copy(public[:], pubBytes[0:32])
-	b.EncrypterPublic = public
+	copy(b.EncrypterPublic[:], pub)
 
-	nnc, err := base64.StdEncoding.DecodeString(snonce)
+	nnc, err := base64.StdEncoding.DecodeString(fields[1])
 	if err != nil {
 		return err
 	}
-	nonceBytes := []byte(nnc)
-	if len(nonceBytes) != 24 {
+	if len(nnc) != 24 {
 		return fmt.Errorf("nonce invalid")
 	}
-	var nonce [24]byte
-	copy(nonce[:], nonceBytes[0:24])
-	b.Nonce = nonce
+	copy(b.Nonce[:], nnc)
 
-	box, err := base64.StdEncoding.DecodeString(sbox)
+	box, err := base64.StdEncoding.DecodeString(fields[2])
 	if err != nil {
 		return err
 	}
 	b.Box = []byte(box)
 
 	return nil
+}
+
+func parseBoxedEnvelope(data []byte) (version int, fields []string, err error) {
+	message := string(data)
+	if !strings.HasPrefix(message, boxedMessagePrefix) || !strings.HasSuffix(message, boxedMessageSuffix) {
+		return 0, nil, fmt.Errorf("invalid message format")
+	}
+
+	body := strings.TrimSuffix(strings.TrimPrefix(message, boxedMessagePrefix), boxedMessageSuffix)
+	versionString, rest, ok := strings.Cut(body, ":")
+	if !ok || versionString == "" || rest == "" {
+		return 0, nil, fmt.Errorf("invalid message format")
+	}
+
+	version, err = strconv.Atoi(versionString)
+	if err != nil {
+		return 0, nil, err
+	}
+
+	return version, strings.Split(rest, ":"), nil
 }

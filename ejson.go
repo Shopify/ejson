@@ -5,25 +5,34 @@ package ejson
 
 import (
 	"bytes"
-	"encoding/hex"
 	"fmt"
 	"io"
 	"os"
-	"strings"
 
 	"github.com/Shopify/ejson/crypto"
 	"github.com/Shopify/ejson/json"
 )
 
-// GenerateKeypair is used to create a new ejson keypair. It returns the keys as
-// hex-encoded strings, suitable for printing to the screen. hex.DecodeString
-// can be used to load the true representation if necessary.
+// GenerateKeypair is used to create a new legacy v1 ejson keypair. It returns
+// the keys as hex-encoded strings, suitable for printing to the screen.
+// hex.DecodeString can be used to load the true representation if necessary.
 func GenerateKeypair() (pub string, priv string, err error) {
 	var kp crypto.Keypair
 	if err := kp.Generate(); err != nil {
 		return "", "", err
 	}
 	return kp.PublicString(), kp.PrivateString(), nil
+}
+
+// GenerateKeypairForScheme is used to create a new ejson keypair for the named
+// scheme. The returned public key is suitable for the _public_key field. The
+// returned private key is suitable for writing into the keydir under keyID.
+func GenerateKeypairForScheme(scheme string) (pub string, priv string, keyID string, err error) {
+	publicKey, privateKey, err := crypto.GenerateKeypairForScheme(scheme)
+	if err != nil {
+		return "", "", "", err
+	}
+	return publicKey.String(), privateKey.String(), publicKey.KeyID(), nil
 }
 
 // Encrypt reads all contents from 'in', extracts the pubkey
@@ -37,22 +46,20 @@ func Encrypt(in io.Reader, out io.Writer) (int, error) {
 		return -1, err
 	}
 
-	var myKP crypto.Keypair
-	if err = myKP.Generate(); err != nil {
-		return -1, err
-	}
-
 	data, err = json.CollapseMultilineStringLiterals(data)
 	if err != nil {
 		return -1, err
 	}
 
-	pubkey, err := json.ExtractPublicKey(data)
+	pubkey, err := json.ExtractCryptoPublicKey(data)
 	if err != nil {
 		return -1, err
 	}
 
-	encrypter := myKP.Encrypter(pubkey)
+	encrypter, err := crypto.NewMessageEncrypter(pubkey)
+	if err != nil {
+		return -1, err
+	}
 	walker := json.Walker{
 		Action: encrypter.Encrypt,
 	}
@@ -68,7 +75,7 @@ func Encrypt(in io.Reader, out io.Writer) (int, error) {
 // EncryptFileInPlace takes a path to a file on disk, which must be a valid EJSON file
 // (see README.md for more on what constitutes a valid EJSON file). Any
 // encryptable-but-unencrypted fields in the file will be encrypted using the
-// public key embdded in the file, and the resulting text will be written over
+// public key embedded in the file, and the resulting text will be written over
 // the file present on disk.
 func EncryptFileInPlace(filePath string) (int, error) {
 	var fileMode os.FileMode
@@ -110,7 +117,7 @@ func Decrypt(in io.Reader, out io.Writer, keydir string, userSuppliedPrivateKey 
 		return err
 	}
 
-	pubkey, err := json.ExtractPublicKey(data)
+	pubkey, err := json.ExtractCryptoPublicKey(data)
 	if err != nil {
 		return err
 	}
@@ -120,12 +127,10 @@ func Decrypt(in io.Reader, out io.Writer, keydir string, userSuppliedPrivateKey 
 		return err
 	}
 
-	myKP := crypto.Keypair{
-		Public:  pubkey,
-		Private: privkey,
+	decrypter, err := crypto.NewMessageDecrypter(pubkey, privkey)
+	if err != nil {
+		return err
 	}
-
-	decrypter := myKP.Decrypter()
 	walker := json.Walker{
 		Action: decrypter.Decrypt,
 	}
@@ -143,9 +148,8 @@ func Decrypt(in io.Reader, out io.Writer, keydir string, userSuppliedPrivateKey 
 // DecryptFile takes a path to an encrypted EJSON file and returns the data
 // decrypted. The public key used to encrypt the values is embedded in the
 // referenced document, and the matching private key is searched for in keydir.
-// There must exist a file in keydir whose name is the public key from the
-// EJSON document, and whose contents are the corresponding private key. See
-// README.md for more details on this.
+// For legacy v1 keys, the keydir filename is the public key. For v3 hybrid
+// keys, the keydir filename is the public key's short key ID.
 func DecryptFile(filePath, keydir string, userSuppliedPrivateKey string) ([]byte, error) {
 	if _, err := os.Stat(filePath); err != nil {
 		return nil, err
@@ -164,8 +168,8 @@ func DecryptFile(filePath, keydir string, userSuppliedPrivateKey string) ([]byte
 	return outBuffer.Bytes(), err
 }
 
-func readPrivateKeyFromDisk(pubkey [32]byte, keydir string) (privkey string, err error) {
-	keyFile := fmt.Sprintf("%s/%x", keydir, pubkey)
+func readPrivateKeyFromDisk(pubkey crypto.PublicKey, keydir string) (privkey string, err error) {
+	keyFile := fmt.Sprintf("%s/%s", keydir, pubkey.KeyID())
 	var fileContents []byte
 	fileContents, err = os.ReadFile(keyFile)
 	if err != nil {
@@ -176,26 +180,17 @@ func readPrivateKeyFromDisk(pubkey [32]byte, keydir string) (privkey string, err
 	return
 }
 
-func findPrivateKey(pubkey [32]byte, keydir string, userSuppliedPrivateKey string) (privkey [32]byte, err error) {
+func findPrivateKey(pubkey crypto.PublicKey, keydir string, userSuppliedPrivateKey string) (crypto.PrivateKey, error) {
 	var privkeyString string
 	if userSuppliedPrivateKey != "" {
 		privkeyString = userSuppliedPrivateKey
 	} else {
+		var err error
 		privkeyString, err = readPrivateKeyFromDisk(pubkey, keydir)
 		if err != nil {
-			return privkey, err
+			return nil, err
 		}
 	}
 
-	privkeyBytes, err := hex.DecodeString(strings.TrimSpace(privkeyString))
-	if err != nil {
-		return
-	}
-
-	if len(privkeyBytes) != 32 {
-		err = fmt.Errorf("invalid private key")
-		return
-	}
-	copy(privkey[:], privkeyBytes)
-	return
+	return crypto.ParsePrivateKeyForPublic(pubkey, []byte(privkeyString))
 }

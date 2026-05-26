@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"os"
+	"strings"
 
 	"github.com/Shopify/ejson"
 )
@@ -43,15 +44,19 @@ func decryptAction(args []string, keydir, userSuppliedPrivateKey, outFile string
 	return err
 }
 
-func keygenAction(_ []string, keydir string, wFlag bool) error {
-	pub, priv, err := ejson.GenerateKeypair()
+func keygenAction(_ []string, keydir string, wFlag bool, scheme string) error {
+	pub, priv, keyID, err := ejson.GenerateKeypairForScheme(scheme)
 	if err != nil {
 		return err
 	}
 
 	if wFlag {
-		keyFile := fmt.Sprintf("%s/%s", keydir, pub)
-		err := writeFile(keyFile, append([]byte(priv), '\n'), 0o440)
+		keyFile := fmt.Sprintf("%s/%s", keydir, keyID)
+		contents := []byte(priv)
+		if !strings.HasSuffix(priv, "\n") {
+			contents = append(contents, '\n')
+		}
+		err := writeFile(keyFile, contents, 0o440)
 		if err != nil {
 			return err
 		}

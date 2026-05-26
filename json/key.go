@@ -2,8 +2,10 @@ package json
 
 import (
 	"encoding/hex"
-	"encoding/json"
+	stdjson "encoding/json"
 	"errors"
+
+	ejsoncrypto "github.com/Shopify/ejson/crypto"
 )
 
 const (
@@ -21,42 +23,53 @@ var ErrPublicKeyMissing = errors.New("public key not present in EJSON file")
 var ErrPublicKeyInvalid = errors.New("public key has invalid format")
 
 // ExtractPublicKey finds the _public_key value in an EJSON document and
-// parses it into a key usable with the crypto library.
+// parses it into a legacy v1 key usable with the crypto library.
 func ExtractPublicKey(data []byte) (key [32]byte, err error) {
-	var (
-		obj map[string]interface{}
-		ks  string
-		ok  bool
-		bs  []byte
-	)
-	err = json.Unmarshal(data, &obj)
+	ks, err := extractPublicKeyString(data)
 	if err != nil {
-		return
+		return key, err
+	}
+
+	if len(ks) != 64 {
+		return key, ErrPublicKeyInvalid
+	}
+	bs, err := hex.DecodeString(ks)
+	if err != nil {
+		return key, ErrPublicKeyInvalid
+	}
+	if len(bs) != 32 {
+		return key, ErrPublicKeyInvalid
+	}
+	copy(key[:], bs)
+	return key, nil
+}
+
+// ExtractCryptoPublicKey finds the _public_key value in an EJSON document and
+// parses it into a schema-aware key usable with the crypto library.
+func ExtractCryptoPublicKey(data []byte) (ejsoncrypto.PublicKey, error) {
+	ks, err := extractPublicKeyString(data)
+	if err != nil {
+		return nil, err
+	}
+	key, err := ejsoncrypto.ParsePublicKeyString(ks)
+	if err != nil {
+		return nil, ErrPublicKeyInvalid
+	}
+	return key, nil
+}
+
+func extractPublicKeyString(data []byte) (string, error) {
+	var obj map[string]interface{}
+	if err := stdjson.Unmarshal(data, &obj); err != nil {
+		return "", err
 	}
 	k, ok := obj[PublicKeyField]
 	if !ok {
-		goto missing
+		return "", ErrPublicKeyMissing
 	}
-	ks, ok = k.(string)
+	ks, ok := k.(string)
 	if !ok {
-		goto invalid
+		return "", ErrPublicKeyInvalid
 	}
-	if len(ks) != 64 {
-		goto invalid
-	}
-	bs, err = hex.DecodeString(ks)
-	if err != nil {
-		goto invalid
-	}
-	if len(bs) != 32 {
-		goto invalid
-	}
-	copy(key[:], bs)
-	return
-missing:
-	err = ErrPublicKeyMissing
-	return
-invalid:
-	err = ErrPublicKeyInvalid
-	return
+	return ks, nil
 }

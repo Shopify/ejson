@@ -78,9 +78,22 @@ func main() {
 					Name:  "write, w",
 					Usage: "rather than printing both keys, print the public and write the private into the keydir",
 				},
+				cli.StringFlag{
+					Name:  "scheme",
+					Value: "v1",
+					Usage: "key scheme to generate: v1 or v3",
+				},
+				cli.BoolFlag{
+					Name:  "pqc",
+					Usage: "generate a v3 hybrid X25519+ML-KEM-768 keypair",
+				},
 			},
 			Action: func(c *cli.Context) {
-				if err := keygenAction(c.Args(), c.GlobalString("keydir"), c.Bool("write")); err != nil {
+				scheme := c.String("scheme")
+				if c.Bool("pqc") {
+					scheme = "v3"
+				}
+				if err := keygenAction(c.Args(), c.GlobalString("keydir"), c.Bool("write"), scheme); err != nil {
 					fmt.Fprintln(os.Stderr, "Key generation failed:", err)
 					os.Exit(1)
 				}

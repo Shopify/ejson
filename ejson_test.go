@@ -4,6 +4,7 @@ import (
 	"os"
 	"path"
 	"regexp"
+	"strings"
 	"testing"
 
 	. "github.com/smartystreets/goconvey/convey"
@@ -25,6 +26,26 @@ func TestGenerateKeypair(t *testing.T) {
 			So(pub, ShouldNotEqual, priv)
 			So(pub, ShouldNotContainSubstring, "00000")
 			So(priv, ShouldNotContainSubstring, "00000")
+		})
+	})
+}
+
+func TestGenerateKeypairForScheme(t *testing.T) {
+	Convey("GenerateKeypairForScheme", t, func() {
+		Convey("generates legacy v1 keys by default", func() {
+			pub, priv, keyID, err := GenerateKeypairForScheme("v1")
+			So(err, ShouldBeNil)
+			So(pub, ShouldHaveLength, 64)
+			So(priv, ShouldHaveLength, 64)
+			So(keyID, ShouldEqual, pub)
+		})
+
+		Convey("generates hybrid v3 keys", func() {
+			pub, priv, keyID, err := GenerateKeypairForScheme("v3")
+			So(err, ShouldBeNil)
+			So(strings.HasPrefix(pub, "v3:"), ShouldBeTrue)
+			So(strings.HasPrefix(priv, "ejson-key v3\n"), ShouldBeTrue)
+			So(keyID, ShouldHaveLength, 32)
 		})
 	})
 }
@@ -108,6 +129,52 @@ func TestEncryptFileInPlace(t *testing.T) {
 				So(match.Find(output), ShouldNotBeNil)
 			})
 		})
+	})
+}
+
+func TestHybridEncryptDecryptFile(t *testing.T) {
+	tempDir, err := os.MkdirTemp("", "ejson_hybrid_keys")
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer os.RemoveAll(tempDir)
+
+	pub, priv, keyID, err := GenerateKeypairForScheme("v3")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if err := os.WriteFile(path.Join(tempDir, keyID), []byte(priv), 0o600); err != nil {
+		t.Fatal(err)
+	}
+
+	tempFile, err := os.CreateTemp(tempDir, "ejson_hybrid_test")
+	if err != nil {
+		t.Fatal(err)
+	}
+	tempFileName := tempFile.Name()
+	if err := tempFile.Close(); err != nil {
+		t.Fatal(err)
+	}
+
+	Convey("hybrid v3 EncryptFileInPlace and DecryptFile", t, func() {
+		original := `{"_public_key": "` + pub + `", "a": "b", "nested": {"secret": "value"}, "_comment": "plaintext"}`
+		setData(tempFileName, []byte(original))
+
+		_, err := EncryptFileInPlace(tempFileName)
+		So(err, ShouldBeNil)
+		ciphertext, err := os.ReadFile(tempFileName)
+		So(err, ShouldBeNil)
+		So(string(ciphertext), ShouldContainSubstring, `"a": "EJ[3:`)
+		So(string(ciphertext), ShouldContainSubstring, `"secret": "EJ[3:`)
+		So(string(ciphertext), ShouldContainSubstring, `"_comment": "plaintext"`)
+
+		out, err := DecryptFile(tempFileName, tempDir, "")
+		So(err, ShouldBeNil)
+		So(string(out), ShouldEqual, original)
+
+		out, err = DecryptFile(tempFileName, "/does/not/matter", priv)
+		So(err, ShouldBeNil)
+		So(string(out), ShouldEqual, original)
 	})
 }
 

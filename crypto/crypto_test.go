@@ -63,24 +63,38 @@ func TestRoundtrip(t *testing.T) {
 	})
 }
 
-func ExampleEncrypt(peerPublic [32]byte) {
-	var kp Keypair
-	if err := kp.Generate(); err != nil {
+func ExampleEncrypter_Encrypt() {
+	var ephemeral, recipient Keypair
+	if err := ephemeral.Generate(); err != nil {
+		panic(err)
+	}
+	if err := recipient.Generate(); err != nil {
 		panic(err)
 	}
 
-	encrypter := kp.Encrypter(peerPublic)
+	encrypter := ephemeral.Encrypter(recipient.Public)
 	boxed, err := encrypter.Encrypt([]byte("this is my message"))
-	fmt.Println(boxed, err)
+	fmt.Println(err == nil, len(boxed) > 0)
+	// Output: true true
 }
 
-func ExampleDecrypt(myPublic, myPrivate [32]byte, encrypted []byte) {
-	kp := Keypair{
-		Public:  myPublic,
-		Private: myPrivate,
+func ExampleDecrypter_Decrypt() {
+	var ephemeral, recipient Keypair
+	if err := ephemeral.Generate(); err != nil {
+		panic(err)
+	}
+	if err := recipient.Generate(); err != nil {
+		panic(err)
 	}
 
-	decrypter := kp.Decrypter()
+	encrypter := ephemeral.Encrypter(recipient.Public)
+	encrypted, err := encrypter.Encrypt([]byte("this is my message"))
+	if err != nil {
+		panic(err)
+	}
+
+	decrypter := recipient.Decrypter()
 	plaintext, err := decrypter.Decrypt(encrypted)
-	fmt.Println(plaintext, err)
+	fmt.Println(string(plaintext), err)
+	// Output: this is my message <nil>
 }

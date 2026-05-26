@@ -3,6 +3,7 @@ package json
 import (
 	"testing"
 
+	ejsoncrypto "github.com/Shopify/ejson/crypto"
 	. "github.com/smartystreets/goconvey/convey"
 )
 
@@ -15,6 +16,16 @@ func TestKeyExtraction(t *testing.T) {
 			So(err, ShouldBeNil)
 			So(key, ShouldResemble, expected)
 		})
+		Convey("extracts schema-aware v3 public keys", func() {
+			pub, _, err := ejsoncrypto.GenerateHybridKeypair()
+			So(err, ShouldBeNil)
+			in := `{"_public_key": "` + pub.String() + `"}`
+			key, err := ExtractCryptoPublicKey([]byte(in))
+			So(err, ShouldBeNil)
+			So(key.Version(), ShouldEqual, ejsoncrypto.SchemaVersionHybrid)
+			So(key.String(), ShouldEqual, pub.String())
+		})
+
 		Convey("fails", func() {
 			Convey("if key is too short", func() {
 				in := `{"_public_key": "6d79b7e50073e5e66a4581ed08bf1d9a03806cc4648cffeb6df71b5775e5eb0"}`
@@ -32,6 +43,12 @@ func TestKeyExtraction(t *testing.T) {
 				in := `{"nope": "dunno"}`
 				_, err := ExtractPublicKey([]byte(in))
 				So(err, ShouldEqual, ErrPublicKeyMissing)
+			})
+
+			Convey("or if schema-aware v3 key is malformed", func() {
+				in := `{"_public_key": "v3:not base64"}`
+				_, err := ExtractCryptoPublicKey([]byte(in))
+				So(err, ShouldEqual, ErrPublicKeyInvalid)
 			})
 		})
 	})

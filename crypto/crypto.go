@@ -1,13 +1,11 @@
-// Package crypto implements a simple convenience wrapper around
-// golang.org/x/crypto/nacl/box. It ultimately models a situation where you
-// don't care about authenticating the encryptor, so the nonce and encryption
-// public key are prepended to the encrypted message.
+// Package crypto implements ejson's encrypted value formats. Legacy v1 values
+// use golang.org/x/crypto/nacl/box. Hybrid v3 values use X25519 + ML-KEM-768 to
+// derive a shared key and XChaCha20-Poly1305 to encrypt the value.
 //
-// Shared key precomputation is used when encrypting but not when decrypting.
-// This is not an inherent limitation, but it would complicate the
-// implementation a little bit to do precomputation during decryption also.
-// If performance becomes an issue (highly unlikely), it's completely feasible
-// to add.
+// The legacy v1 format models a situation where you don't care about
+// authenticating the encryptor, so the nonce and encryption public key are
+// prepended to the encrypted message. Shared key precomputation is used when
+// encrypting v1 values but not when decrypting.
 package crypto
 
 import (
