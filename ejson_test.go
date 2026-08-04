@@ -108,6 +108,21 @@ func TestEncryptFileInPlace(t *testing.T) {
 				So(match.Find(output), ShouldNotBeNil)
 			})
 		})
+
+		Convey("called with a nested underscore key followed by an array value", func() {
+			plaintext := []byte(`{"_public_key": "` + validPubKey + `", "a": [{"_b": "c"}, ["d"]]}`)
+			setData(tempFileName, plaintext)
+
+			_, err := EncryptFileInPlace(tempFileName)
+			So(err, ShouldBeNil)
+			encrypted, err := os.ReadFile(tempFileName)
+			So(err, ShouldBeNil)
+			So(string(encrypted), ShouldNotContainSubstring, `"d"`)
+
+			decrypted, err := DecryptFile(tempFileName, tempDir, validPrivKey)
+			So(err, ShouldBeNil)
+			So(decrypted, ShouldResemble, plaintext)
+		})
 	})
 }
 
