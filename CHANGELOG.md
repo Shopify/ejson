@@ -1,3 +1,7 @@
+# 1.5.5
+
+* Maintenance release.
+
 # 1.5.4
 
 * Bumps golang.org/x/crypto from 0.17.0 to 0.31.0
