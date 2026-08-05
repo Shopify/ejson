@@ -35,19 +35,24 @@ type testCase struct {
 
 // "E" means encrypted.
 var walkTestCases = []testCase{
-	{`{"a": "b"}`, `{"a": "E"}`},                     // encryption
-	{`{"a" : "b"}`, `{"a" : "E"}`},                   // weird spacing
-	{` {  "a"  :"b" } `, ` {  "a"  :"E" } `},         // trailing spaces
-	{`{"a": "b"}` + "\n", `{"a": "E"}` + "\n"},       // trailing newline
-	{`{"_a": "b"}`, `{"_a": "b"}`},                   // commenting
-	{`{"a": "b", "c": "d"}`, `{"a": "E", "c": "E"}`}, // order-dependence
-	{`{"a": 1}`, `{"a": 1}`},                         // numbers
-	{`{"a": true}`, `{"a": true}`},                   // booleans
-	{`{"a": ["b", "c"]}`, `{"a": ["E", "E"]}`},       // encrypting arrays
-	{`{"_a": ["b", "c"]}`, `{"_a": ["b", "c"]}`},     // commenting arrays
-	{`{"a": {"b": "c"}}`, `{"a": {"b": "E"}}`},       // nesting
-	{`{"a": {"_b": "c"}}`, `{"a": {"_b": "c"}}`},     // nested comment
-	{`{"_a": {"b": "c"}}`, `{"_a": {"b": "E"}}`},     // comments don't inherit
+	{`{"a": "b"}`, `{"a": "E"}`},                                   // encryption
+	{`{"a" : "b"}`, `{"a" : "E"}`},                                 // weird spacing
+	{` {  "a"  :"b" } `, ` {  "a"  :"E" } `},                       // trailing spaces
+	{`{"a": "b"}` + "\n", `{"a": "E"}` + "\n"},                     // trailing newline
+	{`{"_a": "b"}`, `{"_a": "b"}`},                                 // commenting
+	{`{"a": "b", "c": "d"}`, `{"a": "E", "c": "E"}`},               // order-dependence
+	{`{"a": 1}`, `{"a": 1}`},                                       // numbers
+	{`{"a": true}`, `{"a": true}`},                                 // booleans
+	{`{"a": ["b", "c"]}`, `{"a": ["E", "E"]}`},                     // encrypting arrays
+	{`{"_a": ["b", "c"]}`, `{"_a": ["b", "c"]}`},                   // commenting arrays
+	{`{"a": {"b": "c"}}`, `{"a": {"b": "E"}}`},                     // nesting
+	{`{"a": {"_b": "c"}}`, `{"a": {"_b": "c"}}`},                   // nested comment
+	{`{"a": [{"_b": "c"}, "d"]}`, `{"a": [{"_b": "c"}, "E"]}`},     // nested comment does not leak to a sibling
+	{`{"a": [{"_b": "c"}, ["d"]]}`, `{"a": [{"_b": "c"}, ["E"]]}`}, // nested comment does not leak to a sibling array
+	{`{"a": [{"_b": {}}, "d"]}`, `{"a": [{"_b": {}}, "E"]}`},       // empty nested object restores the enclosing state
+	{`{"_a": [{"_b": "c"}, "d"]}`, `{"_a": [{"_b": "c"}, "d"]}`},   // enclosing array comment persists through a nested object
+	{`{"_a": [{}, "d"]}`, `{"_a": [{}, "d"]}`},                     // enclosing array comment persists through an empty object
+	{`{"_a": {"b": "c"}}`, `{"_a": {"b": "E"}}`},                   // comments don't inherit
 }
 
 func TestQuoteBytes(t *testing.T) {

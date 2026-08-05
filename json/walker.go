@@ -99,6 +99,7 @@ func (ew *Walker) Walk(data []byte) ([]byte, error) {
 		inLiteral    bool
 		literalStart int
 		isComment    bool
+		commentStack []bool
 		scanner      json.Scanner
 	)
 	scanner.Reset()
@@ -117,6 +118,15 @@ func (ew *Walker) Walk(data []byte) ([]byte, error) {
 			inLiteral = false
 			isComment = data[literalStart+1] == '_'
 			pline.appendBytes(data[literalStart:i])
+		case json.ScanBeginObject:
+			// Underscore keys do not apply to values inside an object, but remember
+			// the enclosing state so it is restored when the object closes.
+			commentStack = append(commentStack, isComment)
+			isComment = false
+		case json.ScanBeginArray:
+			// Array elements are part of their referencing value, so they inherit
+			// its comment state until the array closes.
+			commentStack = append(commentStack, isComment)
 		case json.ScanError:
 			// Some error happened; just bail.
 			pline.flush()
@@ -143,6 +153,12 @@ func (ew *Walker) Walk(data []byte) ([]byte, error) {
 					}(data[literalStart:i])
 					pline.appendPromise(res)
 				}
+			}
+			// A container-close event may also terminate the preceding literal, so
+			// restore the enclosing comment state only after handling that literal.
+			if v == json.ScanEndObject || v == json.ScanEndArray {
+				isComment = commentStack[len(commentStack)-1]
+				commentStack = commentStack[:len(commentStack)-1]
 			}
 		}
 		if !inLiteral {
