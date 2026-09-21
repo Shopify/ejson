@@ -32,7 +32,8 @@ func decryptAction(args []string, keydir, userSuppliedPrivateKey, outFile string
 
 	target := os.Stdout
 	if outFile != "" {
-		target, err = os.Create(outFile)
+		// Restrict new files without changing existing files' permissions.
+		target, err = os.OpenFile(outFile, os.O_RDWR|os.O_CREATE|os.O_TRUNC, 0o600)
 		if err != nil {
 			return err
 		}

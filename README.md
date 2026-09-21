@@ -132,6 +132,10 @@ $ ejson decrypt foo.ejson
 }
 ```
 
+To write plaintext to a file, use `ejson decrypt -o output.json foo.ejson`. On Unix, newly created files use mode `0600` before the process umask. Existing files are updated in place with their permissions unchanged, including files reached through symlinks or hard links.
+
+Workloads that share the output with another user or group must pre-create the destination with the required ownership and permissions before decryption. This preserves intentionally shared access, but does not secure an existing file that is too permissive. Review those files separately, and use an output path in a trusted directory. Shell redirection, such as `ejson decrypt foo.ejson > output.json`, is controlled by the shell and does not receive the CLI's new-file permissions.
+
 ## Format
 
 The `ejson` document format is simple, but there are a few points to be aware
