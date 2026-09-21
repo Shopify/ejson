@@ -1,3 +1,11 @@
+# 1.6.0
+
+* Security: `ejson decrypt -o` now creates new output files with mode `0600` instead of the
+  process default (usually `0644`). Existing files keep their permissions and are updated in place.
+* Breaking for workloads where a different user or group reads a newly created output file. Create
+  the destination with the required ownership and mode before running `ejson decrypt -o`. See the
+  README's decrypt section.
+
 # 1.5.5
 
 * Maintenance release.
