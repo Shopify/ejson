@@ -32,7 +32,8 @@ func decryptAction(args []string, keydir, userSuppliedPrivateKey, outFile string
 
 	target := os.Stdout
 	if outFile != "" {
-		// Restrict new files without changing existing files' permissions.
+		// Same flags as os.Create, but new files are created with mode 0600.
+		// Existing files are truncated in place and keep their permissions.
 		target, err = os.OpenFile(outFile, os.O_RDWR|os.O_CREATE|os.O_TRUNC, 0o600)
 		if err != nil {
 			return err
