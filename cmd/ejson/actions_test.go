@@ -284,6 +284,27 @@ func TestDecryptRefusesFileOwnedByOtherUser(t *testing.T) {
 	assertOutput(t, output, []byte("theirs"), 0644)
 }
 
+func TestKeygenWritesPrivateKeyOwnerReadOnly(t *testing.T) {
+	if runtime.GOOS == "windows" {
+		t.Skip("requires POSIX file permissions")
+	}
+	keydir := t.TempDir()
+	if err := keygenAction(nil, keydir, true); err != nil {
+		t.Fatal(err)
+	}
+	entries, err := os.ReadDir(keydir)
+	if err != nil || len(entries) != 1 {
+		t.Fatalf("expected one key file, got %d, %v", len(entries), err)
+	}
+	info, err := entries[0].Info()
+	if err != nil {
+		t.Fatal(err)
+	}
+	if info.Mode().Perm() != 0400 {
+		t.Errorf("private key mode: got %04o, want 0400", info.Mode().Perm())
+	}
+}
+
 func assertOutput(t *testing.T, path string, plaintext []byte, mode os.FileMode) {
 	t.Helper()
 	info, err := os.Stat(path)

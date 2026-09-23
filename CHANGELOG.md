@@ -3,6 +3,7 @@
 * Security: `ejson decrypt -o` now restricts the output file to mode `0600` before writing, for new and existing regular files. Previously new files used the process default (usually `0644`) and existing files kept whatever permissions they had.
 * Breaking change: an existing output file owned by another user is refused and left unchanged, and group or world read access on an existing output file is removed. Callers that share the plaintext with another user or group must copy it to a destination with the intended ownership and permissions after decrypting. Non-regular targets such as `/dev/null` are unaffected. See the README's decrypt section.
 * A failure to close the output file is now reported instead of exiting successfully with a partial file.
+* Security: `ejson keygen -w` now writes the private key with mode `0400` instead of `0440`.
 
 # 1.5.5
 

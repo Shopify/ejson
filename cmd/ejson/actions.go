@@ -89,7 +89,9 @@ func keygenAction(_ []string, keydir string, wFlag bool) error {
 
 	if wFlag {
 		keyFile := fmt.Sprintf("%s/%s", keydir, pub)
-		err := writeFile(keyFile, append([]byte(priv), '\n'), 0o440)
+		// Only the creating user needs the private key. On macOS every local
+		// account shares the staff group, so group read would expose it.
+		err := writeFile(keyFile, append([]byte(priv), '\n'), 0o400)
 		if err != nil {
 			return err
 		}
