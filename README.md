@@ -132,9 +132,9 @@ $ ejson decrypt foo.ejson
 }
 ```
 
-To write the plaintext to a file instead of stdout, use `ejson decrypt -o output.json foo.ejson`. On Unix, a new output file is created with mode `0600`. An existing file is updated in place and keeps its permissions, owner, and links.
+To write the plaintext to a file instead of stdout, use `ejson decrypt -o output.json foo.ejson`. On Unix, the output file is restricted to mode `0600` before anything is written, whether it is new or already exists, so only the invoking user can read it. An existing file is updated in place and keeps its owner and links. If it is owned by another user, the command fails and the file is not modified. Non-regular targets such as `/dev/null` are written as they are.
 
-If another user or group must read the output, create the file with the intended ownership and permissions before decrypting. Review any existing output file that is more permissive than you intend, and keep the output in a directory that untrusted users cannot access. Shell redirection (`ejson decrypt foo.ejson > output.json`) uses the shell's permissions, not the CLI's.
+Write the output in a directory that untrusted users cannot write to: the CLI follows symlinks, and changing permissions does not affect a process that already has the file open. If another user or group needs the plaintext, copy it to a destination with the intended ownership and permissions after decrypting rather than decrypting straight into a shared file. Shell redirection (`ejson decrypt foo.ejson > output.json`) uses the shell's permissions, not the CLI's.
 
 ## Format
 
