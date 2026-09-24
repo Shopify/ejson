@@ -46,12 +46,10 @@ func decryptAction(args []string, keydir, userSuppliedPrivateKey, outFile string
 }
 
 // openOutput opens the plaintext destination with the same flags as os.Create,
-// except that truncation waits until the file is known to be a regular file that
-// the caller owns and that has been restricted to mode 0600. Files created by
-// earlier versions, or pre-created by another user in a shared directory, are
-// therefore not left readable by others, and a file the caller does not own is
-// refused without being modified. Non-regular targets such as /dev/null are
-// written unchanged.
+// except that truncation waits until a regular file owned by the caller has been
+// restricted to mode 0600, so files created by earlier versions are no longer
+// left readable by others. A regular file owned by another user keeps its
+// permissions, and non-regular targets such as /dev/null are written unchanged.
 func openOutput(outFile string) (*os.File, error) {
 	f, err := os.OpenFile(outFile, os.O_RDWR|os.O_CREATE, 0o600)
 	if err != nil {
@@ -72,11 +70,10 @@ func restrictOutput(f *os.File) error {
 	if !info.Mode().IsRegular() {
 		return nil
 	}
-	if !ownedByCaller(info) {
-		return fmt.Errorf("refusing to write %s: it is owned by another user", f.Name())
-	}
-	if err := f.Chmod(0o600); err != nil {
-		return fmt.Errorf("restricting permissions of %s: %w", f.Name(), err)
+	if ownedByCaller(info) {
+		if err := f.Chmod(0o600); err != nil {
+			return fmt.Errorf("restricting permissions of %s: %w", f.Name(), err)
+		}
 	}
 	return f.Truncate(0)
 }

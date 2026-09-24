@@ -8,7 +8,6 @@ import (
 	"os/exec"
 	"path/filepath"
 	"runtime"
-	"strings"
 	"testing"
 
 	"github.com/Shopify/ejson"
@@ -180,10 +179,12 @@ func TestDecryptOutputFile(t *testing.T) {
 		if err := os.Chown(output, 65534, 65534); err != nil {
 			t.Fatal(err)
 		}
-		if message, err := run(output, "022"); err == nil {
-			t.Fatalf("decrypt wrote into a file owned by another user: %s", message)
+		// Pending a decision on this case, a file owned by another user is written
+		// as before and keeps its permissions.
+		if message, err := run(output, "022"); err != nil {
+			t.Fatalf("decrypt into a file owned by another user: %v\n%s", err, message)
 		}
-		assertOutput(t, output, []byte("theirs"), 0644)
+		assertOutput(t, output, plaintext, 0644)
 	})
 
 	t.Run("existing_file_in_nonwritable_directory", func(t *testing.T) {
@@ -248,8 +249,8 @@ func TestDecryptFailurePreservesOutput(t *testing.T) {
 	}
 }
 
-// The refusal path must leave a foreign file untouched, including its contents.
-func TestDecryptRefusesFileOwnedByOtherUser(t *testing.T) {
+// A file owned by another user is written without changing its permissions.
+func TestDecryptKeepsPermissionsOfFileOwnedByOtherUser(t *testing.T) {
 	original := ownedByCaller
 	ownedByCaller = func(os.FileInfo) bool { return false }
 	defer func() { ownedByCaller = original }()
@@ -277,11 +278,10 @@ func TestDecryptRefusesFileOwnedByOtherUser(t *testing.T) {
 	if err := os.WriteFile(filepath.Join(dir, publicKey), []byte(privateKey), 0600); err != nil {
 		t.Fatal(err)
 	}
-	err = decryptAction([]string{input}, dir, "", output)
-	if err == nil || !strings.Contains(err.Error(), "owned by another user") {
-		t.Fatalf("expected ownership refusal, got %v", err)
+	if err := decryptAction([]string{input}, dir, "", output); err != nil {
+		t.Fatal(err)
 	}
-	assertOutput(t, output, []byte("theirs"), 0644)
+	assertOutput(t, output, []byte(fmt.Sprintf(`{"_public_key":%q,"k":"v"}`, publicKey)), 0644)
 }
 
 func TestKeygenWritesPrivateKeyOwnerReadOnly(t *testing.T) {
