@@ -55,20 +55,28 @@ func TestDecryptOutputFile(t *testing.T) {
 		return cmd.CombinedOutput()
 	}
 
-	for _, umask := range []string{"000", "022", "077"} {
-		t.Run("new_file_umask_"+umask, func(t *testing.T) {
+	for _, tc := range []struct {
+		umask string
+		mode  os.FileMode
+	}{
+		{"000", 0o600},
+		{"022", 0o600},
+		{"077", 0o600},
+		{"200", 0o400}, // A restrictive umask must not be undone after creation.
+	} {
+		t.Run("new_file_umask_"+tc.umask, func(t *testing.T) {
 			output := filepath.Join(t.TempDir(), "decrypted.json")
-			if message, err := run(output, umask); err != nil {
+			if message, err := run(output, tc.umask); err != nil {
 				t.Fatalf("decrypt: %v\n%s", err, message)
 			}
-			assertOutput(t, output, plaintext, 0600)
+			assertOutput(t, output, plaintext, tc.mode)
 		})
 	}
 
 	for _, mode := range []os.FileMode{0600, 0640, 0644, 0660, 0666} {
 		t.Run(fmt.Sprintf("existing_mode_%04o", mode), func(t *testing.T) {
 			output := filepath.Join(t.TempDir(), "decrypted.json")
-			if err := os.WriteFile(output, []byte("old content"), mode); err != nil {
+			if err := os.WriteFile(output, bytes.Repeat([]byte("old content"), len(plaintext)), mode); err != nil {
 				t.Fatal(err)
 			}
 			if err := os.Chmod(output, mode); err != nil {
@@ -84,14 +92,13 @@ func TestDecryptOutputFile(t *testing.T) {
 			}
 			defer reader.Close()
 
-			// Existing files are restricted to 0600 in place: same inode, and
-			// any permissive mode left by an earlier version is removed.
-			if message, err := run(output, "022"); err != nil {
+			// A restrictive umask must not change an existing destination's mode.
+			if message, err := run(output, "077"); err != nil {
 				t.Fatalf("decrypt: %v\n%s", err, message)
 			}
-			assertOutput(t, output, plaintext, 0600)
+			assertOutput(t, output, plaintext, mode)
 			assertSameFile(t, before, output)
-			// Chmod does not revoke descriptors opened earlier; documented residual risk.
+			// In-place writes remain visible through descriptors opened earlier.
 			data, err := io.ReadAll(reader)
 			if err != nil || !bytes.Equal(data, plaintext) {
 				t.Errorf("existing reader did not see updated content: %q, %v", data, err)
@@ -129,8 +136,8 @@ func TestDecryptOutputFile(t *testing.T) {
 			if err != nil || link != target {
 				t.Errorf("output symlink changed: %q, %v", link, err)
 			}
-			// The link is followed and the caller-owned target is restricted.
-			assertOutput(t, target, plaintext, 0600)
+			// Existing targets keep their mode; a newly created target uses 0600.
+			assertOutput(t, target, plaintext, mode)
 			if before != nil {
 				assertSameFile(t, before, target)
 			}
@@ -157,7 +164,7 @@ func TestDecryptOutputFile(t *testing.T) {
 		if message, err := run(output, "022"); err != nil {
 			t.Fatalf("decrypt: %v\n%s", err, message)
 		}
-		assertOutput(t, target, plaintext, 0600)
+		assertOutput(t, target, plaintext, 0640)
 		assertSameFile(t, before, target)
 		assertSameFile(t, before, output)
 	})
@@ -176,11 +183,13 @@ func TestDecryptOutputFile(t *testing.T) {
 		if err := os.WriteFile(output, []byte("theirs"), 0644); err != nil {
 			t.Fatal(err)
 		}
+		if err := os.Chmod(output, 0644); err != nil {
+			t.Fatal(err)
+		}
 		if err := os.Chown(output, 65534, 65534); err != nil {
 			t.Fatal(err)
 		}
-		// Pending a decision on this case, a file owned by another user is written
-		// as before and keeps its permissions.
+		// The caller's ownership does not determine the destination's mode.
 		if message, err := run(output, "022"); err != nil {
 			t.Fatalf("decrypt into a file owned by another user: %v\n%s", err, message)
 		}
@@ -247,41 +256,6 @@ func TestDecryptFailurePreservesOutput(t *testing.T) {
 	if err != nil || string(data) != "untouched" {
 		t.Errorf("output changed after decryption failure: %q, %v", data, err)
 	}
-}
-
-// A file owned by another user is written without changing its permissions.
-func TestDecryptKeepsPermissionsOfFileOwnedByOtherUser(t *testing.T) {
-	original := ownedByCaller
-	ownedByCaller = func(os.FileInfo) bool { return false }
-	defer func() { ownedByCaller = original }()
-
-	dir := t.TempDir()
-	output := filepath.Join(dir, "output")
-	if err := os.WriteFile(output, []byte("theirs"), 0644); err != nil {
-		t.Fatal(err)
-	}
-	if err := os.Chmod(output, 0644); err != nil {
-		t.Fatal(err)
-	}
-	publicKey, privateKey, err := ejson.GenerateKeypair()
-	if err != nil {
-		t.Fatal(err)
-	}
-	var encrypted bytes.Buffer
-	if _, err := ejson.Encrypt(bytes.NewReader([]byte(fmt.Sprintf(`{"_public_key":%q,"k":"v"}`, publicKey))), &encrypted); err != nil {
-		t.Fatal(err)
-	}
-	input := filepath.Join(dir, "in.ejson")
-	if err := os.WriteFile(input, encrypted.Bytes(), 0600); err != nil {
-		t.Fatal(err)
-	}
-	if err := os.WriteFile(filepath.Join(dir, publicKey), []byte(privateKey), 0600); err != nil {
-		t.Fatal(err)
-	}
-	if err := decryptAction([]string{input}, dir, "", output); err != nil {
-		t.Fatal(err)
-	}
-	assertOutput(t, output, []byte(fmt.Sprintf(`{"_public_key":%q,"k":"v"}`, publicKey)), 0644)
 }
 
 func TestKeygenWritesPrivateKeyOwnerReadOnly(t *testing.T) {

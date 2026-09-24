@@ -1,9 +1,9 @@
 # 1.6.0
 
-* Security: `ejson decrypt -o` now restricts an output file owned by the caller to mode `0600` before writing, whether it is new or already exists. Previously new files used the process default (usually `0644`) and existing files kept whatever permissions they had. A file owned by another user keeps its permissions, and non-regular targets such as `/dev/null` are unaffected.
-* Breaking change: group or world read access on an existing output file you own is removed. To share the plaintext with another user, create the destination with that owner and the intended mode before decrypting, or copy it afterwards. See the README's decrypt section.
-* A failure to close the output file is now reported instead of exiting successfully with a partial file.
-* Security: `ejson keygen -w` now writes the private key with mode `0400` instead of `0440`.
+* Security: `ejson decrypt -o` now creates new output files with mode `0600`, further restricted by the process umask, instead of `0666` before umask (usually `0644`). Existing output files keep their permissions and ownership and are updated in place.
+* Compatibility: callers that need newly created output to be readable by another user or group must first create the destination with the intended ownership and permissions. Existing permissive output files need separate review; upgrading does not tighten them.
+* Output-file close errors are now reported instead of being ignored.
+* Security: `ejson keygen -w` now creates private-key files with mode `0400` instead of `0440`, removing default group read access while keeping owner-read-only access. Existing key files are not changed.
 
 # 1.5.5
 
