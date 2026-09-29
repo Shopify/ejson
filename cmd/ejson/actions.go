@@ -30,16 +30,19 @@ func decryptAction(args []string, keydir, userSuppliedPrivateKey, outFile string
 		return err
 	}
 
-	target := os.Stdout
-	if outFile != "" {
-		target, err = os.Create(outFile)
-		if err != nil {
-			return err
-		}
-		defer func() { _ = target.Close() }()
+	if outFile == "" {
+		_, err = os.Stdout.Write(decrypted)
+		return err
 	}
-
+	// Restrict new files without changing existing destinations' permissions.
+	target, err := os.OpenFile(outFile, os.O_RDWR|os.O_CREATE|os.O_TRUNC, 0o600)
+	if err != nil {
+		return err
+	}
 	_, err = target.Write(decrypted)
+	if cerr := target.Close(); err == nil {
+		err = cerr
+	}
 	return err
 }
 
@@ -51,7 +54,8 @@ func keygenAction(_ []string, keydir string, wFlag bool) error {
 
 	if wFlag {
 		keyFile := fmt.Sprintf("%s/%s", keydir, pub)
-		err := writeFile(keyFile, append([]byte(priv), '\n'), 0o440)
+		// Keep new keys owner-read-only without granting group access.
+		err := writeFile(keyFile, append([]byte(priv), '\n'), 0o400)
 		if err != nil {
 			return err
 		}

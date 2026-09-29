@@ -46,7 +46,7 @@ func main() {
 			Flags: []cli.Flag{
 				cli.StringFlag{
 					Name:  "o",
-					Usage: "print output to the provided file, rather than stdout",
+					Usage: "write output to this file instead of stdout (on Unix, new files use mode 0600 before umask; existing permissions are unchanged)",
 				},
 				cli.BoolFlag{
 					Name:  "key-from-stdin",
