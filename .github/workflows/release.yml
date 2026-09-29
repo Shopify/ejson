@@ -18,6 +18,8 @@ jobs:
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
         with:
           fetch-depth: 0
+      - name: Check tag matches VERSION
+        run: test "${GITHUB_REF_NAME#v}" = "$(cat VERSION)"
       - name: Get latest Go version
         id: gover
         run: echo goversion=$(awk -F':|-' '!/^#/ {print $2}' .github/dockerfile-for-dependabot/Dockerfile) >> "$GITHUB_OUTPUT"
@@ -47,3 +49,34 @@ jobs:
         uses: actions/attest-build-provenance@a2bbfa25375fe432b6a289bc6b6cd05ecd0c4c32 # v4.1.0
         with:
           subject-path: "dist/*.deb"
+      - name: Set up Ruby
+        uses: ruby/setup-ruby@14594264cd68ce8a2345dd349bc3d138a4ef85c8 # v1.327.0
+      - name: Build gem
+        run: make gem
+      - name: Upload gem
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: gem
+          path: pkg/*.gem
+          if-no-files-found: error
+
+  rubygem:
+    needs: release
+    runs-on: ubuntu-latest
+    environment: release
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - name: Download gem
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        with:
+          name: gem
+      - name: Set up Ruby
+        uses: ruby/setup-ruby@14594264cd68ce8a2345dd349bc3d138a4ef85c8 # v1.327.0
+        with:
+          ruby-version: ruby
+      - name: Configure RubyGems credentials
+        uses: rubygems/configure-rubygems-credentials@dc5a8d8553e6ee01fc26761a49e99e733d17954a # v2.1.0
+      - name: Publish to RubyGems
+        run: gem push *.gem
